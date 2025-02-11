@@ -20,22 +20,16 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  Run:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout Sources
       uses: actions/checkout@v4
 
-    - name: Restore Src
+    - name: Restore NuGet Packages
       run: >-
-        dotnet restore ./src/Azure.Monitor.Telemetry.csproj
-        --no-dependencies
-  
-    - name: Restore Tests
-      run: >-
-        dotnet restore ./tests/Azure.Monitor.Telemetry.Tests.csproj
-        --no-dependencies
+        dotnet restore ${{ env.SOLUTION_FILE }}
 
     - name: Build Solution
       run: >-
@@ -57,19 +51,19 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
         --verbosity normal
 
-    - name: Upload Code Coverage Report
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: code-coverage-report
-        path: ${{ env.TESTS_RESULTS_DIRECTORY }}
-  
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
+
+    - name: Upload Code Coverage Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: ${{ env.TESTS_RESULTS_DIRECTORY }}
 
     - name: Create code coverage report
       if: always()
