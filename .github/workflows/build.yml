@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Restore
-      run: dotnet restore -s src\Azure.Monitor.Telemetry.csproj -s test\Azure.Monitor.Telemetry.Tests.csproj
+      run: dotnet restore -s ./src/Azure.Monitor.Telemetry.csproj -s ./tests/Azure.Monitor.Telemetry.Tests.csproj
 
     - name: Build
       run: dotnet build ${{ env.SOLUTION_FILE }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
