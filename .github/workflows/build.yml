@@ -13,7 +13,7 @@ env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
   # Path to the test results directory relative to the root of the project.
-  TEST_RESULTS_DIRECTORY: ${{ github.workspace }}/testsResults
+  TEST_RESULTS_DIRECTORY: ./testsResults
 
 jobs:
   build:
@@ -32,4 +32,4 @@ jobs:
     - name: Test
       id: test1
       continue-on-error: true
-      run: dotnet test ${{ env.SOLUTION_FILE }} --framework net9.0 --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --results-directory ${{ env.TEST_RESULTS_DIRECTORY }} --logger:"console;verbosity=detailed" --logger:"trx;logfileprefix=testResults_" -filter TestCategory==UnitTests
+      run: dotnet test ${{ env.SOLUTION_FILE }} --framework net9.0 --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --results-directory ${{ env.TEST_RESULTS_DIRECTORY }} --logger:"console;verbosity=detailed" --logger:"trx;logfileprefix=testResults_" --filter TestCategory=UnitTests
