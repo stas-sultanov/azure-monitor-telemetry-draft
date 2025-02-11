@@ -47,7 +47,7 @@ jobs:
       id: UnitTests
       run: >-
         dotnet test ${{ env.SOLUTION_FILE }}
-        --collect:"XPlat Code Coverage" 
+        --collect:"Code Coverage"
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --filter TestCategory=UnitTests
         --framework net9.0
@@ -57,6 +57,13 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
         --verbosity normal
 
+    - name: Upload Code Coverage Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-report
+        path: ${{ env.TESTS_RESULTS_DIRECTORY }}
+  
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
@@ -73,4 +80,4 @@ jobs:
     - name: Write to Job Summary
       if: always()
       run: cat CodeCoverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
-  
+
