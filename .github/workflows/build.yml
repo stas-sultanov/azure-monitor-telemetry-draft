@@ -11,9 +11,9 @@ env:
   # Configuration type to build.
   BUILD_CONFIGURATION: Release
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: ./Azure.Monitor.Telemetry.csproj
+  SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
   # Path to the test results directory relative to the root of the project.
-  TEST_RESULTS_DIRECTORY: ${{ github.workspace }}/TestResults
+  TEST_RESULTS_DIRECTORY: ${{ github.workspace }}/testsResults
 
 jobs:
   build:
