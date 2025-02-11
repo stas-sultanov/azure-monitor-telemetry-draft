@@ -11,7 +11,7 @@ env:
   # Configuration type to build.
   BUILD_CONFIGURATION: Release
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: ./Microsoft.ApplicationInsights.sln
+  SOLUTION_FILE: ./Azure.Monitor.Telemetry.csproj
   # Path to the test results directory relative to the root of the project.
   TEST_RESULTS_DIRECTORY: ${{ github.workspace }}/TestResults
 
@@ -20,16 +20,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4.3.0
-      continue-on-error: true
-      with:
-        dotnet-version: |
-          4.6.x
-          8.0.x
-          9.0.x
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Restore
       run: dotnet restore ${{ env.SOLUTION_FILE }}
