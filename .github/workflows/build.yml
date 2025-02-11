@@ -13,7 +13,7 @@ env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
   # Path to the test results directory relative to the root of the project.
-  TEST_RESULTS_DIRECTORY: ./testsResults
+  TESTS_RESULTS_DIRECTORY: ./testsResults
 
 permissions:
   checks: write
@@ -27,23 +27,53 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Restore Src
-      run: dotnet restore ./src/Azure.Monitor.Telemetry.csproj
-      
     - name: Restore Tests
-      run: dotnet restore ./tests/Azure.Monitor.Telemetry.Tests.csproj --no-dependencies
+      run: dotnet restore ./tests/Azure.Monitor.Telemetry.Tests.csproj
 
     - name: Build
-      run: dotnet build ${{ env.SOLUTION_FILE }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      run: >-
+        dotnet build ${{ env.SOLUTION_FILE }}
+        --configuration ${{ env.BUILD_CONFIGURATION }}
+        --no-restore
 
     - name: Run Tests
       id: UnitTests
-      run: dotnet test ${{ env.SOLUTION_FILE }} --framework net9.0 --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --results-directory ${{ env.TEST_RESULTS_DIRECTORY }} --logger:"console;verbosity=detailed" --logger:"trx;logfileprefix=testResults_" --filter TestCategory=UnitTests
+      run: >-
+        dotnet test ${{ env.SOLUTION_FILE }}
+        --collect:"XPlat Code Coverage" 
+        --configuration ${{ env.BUILD_CONFIGURATION }}
+        --filter TestCategory=UnitTests
+        --framework net9.0
+        --logger:"console;verbosity=detailed"
+        --logger:"trx;logfileprefix=testResults_"
+        --no-build
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
+        --verbosity normal
+
+    - name: Publish Code Coverage
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: both
+        thresholds: '90 95'
 
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
         files: |
-          ${{ env.TEST_RESULTS_DIRECTORY }}\**\*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
   
