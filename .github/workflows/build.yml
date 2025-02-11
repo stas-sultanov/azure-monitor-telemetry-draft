@@ -20,18 +20,15 @@ env:
   # Path to the test results directory relative to the root of the project.
   TEST_RESULTS_DIRECTORY: ${{ github.workspace }}/TestResults
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@master
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           4.6.2

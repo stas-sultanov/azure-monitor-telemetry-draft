@@ -10,12 +10,12 @@
 	</PropertyGroup>
 
 	<Choose>
-		<When Condition=" '$(TF_BUILD)' == 'true' ">
+		<When Condition=" '$(GITHUB_ACTIONS)' != 'true' ">
 			<PropertyGroup>
 				<TargetFramework>net9.0</TargetFramework>
 			</PropertyGroup>
 		</When>
-		<When Condition=" '$(TF_BUILD)' != 'true' ">
+		<When Condition=" '$(GITHUB_ACTIONS)' == 'true' ">
 			<PropertyGroup>
 				<Authors>Stas Sultanov</Authors>
 				<Company>Stas Sultanov</Company>
