@@ -15,6 +15,10 @@ env:
   # Path to the test results directory relative to the root of the project.
   TEST_RESULTS_DIRECTORY: ./testsResults
 
+permissions:
+  checks: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -24,12 +28,19 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Restore
-      run: dotnet restore ${{ env.SOLUTION_FILE }}
+      run: dotnet restore -s src\Azure.Monitor.Telemetry.csproj -s test\Azure.Monitor.Telemetry.Tests.csproj
 
     - name: Build
       run: dotnet build ${{ env.SOLUTION_FILE }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
 
-    - name: Test
-      id: test1
-      continue-on-error: true
+    - name: Run Tests
+      id: UnitTests
       run: dotnet test ${{ env.SOLUTION_FILE }} --framework net9.0 --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --results-directory ${{ env.TEST_RESULTS_DIRECTORY }} --logger:"console;verbosity=detailed" --logger:"trx;logfileprefix=testResults_" --filter TestCategory=UnitTests
+
+    - name: Publish Tests Results
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
+      if: always()
+      with:
+        files: |
+          ${{ env.TEST_RESULTS_DIRECTORY }}\**\*.trx
+  
