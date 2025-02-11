@@ -16,121 +16,48 @@ TODO: Describe and show how to build your code and run the tests.
 ```mermaid
 ---
 title: Telemetry
+config:
+    class:
+        hideEmptyMembersBox: true
 ---
-
-    classDiagram
+classDiagram
     direction TB
+
     class Telemetry {
         <<Interface>>
-        +OperationContext Operation #123; get; #125;
-        +PropertyList Properties #123; get; #125;
-        +TagList Tags #123; get; #125;
-        +DateTime Time #123; get; #125;
-    }
-
-    class MeteredTelemetry {
-        <<Interface>>
-        +MeasurementList Measurements #123; get; #125;
-    }
-
-    class NamedTelemetry {
-        <<Interface>>
-        +String Nmae #123; get; #125;
-    }
-
-    class OperationTelemetry {
-        <<Interface>>
-        +TimeSpan Duration #123; get; #125;
-        +String Id #123; get #125;
-        +Boolean Success #123; get; #125;
     }
 
     class AvailabilityTelemetry {
-        +TimeSpan Duration #123; get; init; #125;
-        +String Id #123; get; #125;
-        +MeasurementList Measurements #123; get; init; #125;
-        +String Name #123; get; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +String RunLocation #123; get; init; #125;
-        +String Message #123; get; #125;
-        +Boolean Success #123; get; init; #125;
-        +TagList Tags #123; get; init; #125;
-        +DateTime Time #123; get; #125;
-        +AvailabilityTelemetry(DateTime time, String id, String name, String message)
     }
 
     class DependencyTelemetry {
-        +String Data #123; get; init; #125;
-        +TimeSpan Duration #123; get; init; #125;
-        +String Id #123; get; #125;
-        +MeasurementList Measurements #123; get; init; #125;
-        +String Name #123; get; init; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +String ResultCode #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +Boolean Success  #123; get; init; #125;
-        +TagList Tags #123; get; init; #125;
-        +String Target #123; get; init; #125;
-        +DateTime Time #123; get; #125;
-        +String Type #123; get; init; #125;
-        +DependencyTelemetry(DateTime time, String id)
     }
 
     class EventTelemetry {
-        +MeasurementList Measurements #123; get; init; #125;
-        +String Name #123; get; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +TagList Tags #123; get; init; #125;
-        +DateTime Time #123; get; #125;
-        +EventTelemetry(DateTime time, String name)
     }
 
     class ExceptionTelemetry {
-        +Exception Exception  #123; get; #125;
-        +MeasurementList Measurements #123; get; init; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +Nullable~SeverityLevel~ SeverityLevel #123; get; init; #125;
-        +TagList Tags #123; get; init; #125;
-        +DateTime Time #123; get; #125;
-        +ExceptionTelemetry(DateTime time, Exception exception)
+    }
+
+    class PageViewTelemetry {
     }
 
     class RequestTelemetry {
-        +TimeSpan Duration #123; get; init; #125;
-        +String Id #123; get; #125;
-        +MeasurementList Measurements #123; get; init; #125;
-        +String Name #123; get; init; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +String ResponseCode #123; get; init; #125;
-        +Boolean Success #123; get; set; #125;
-        +TagList Tags #123; get; init; #125;
-        +DateTime Time #123; get; #125;
-        +Uri Url #123; get; #125;
-        +RequestTelemetry(DateTime time, String id, Uri url)
     }
 
     class TraceTelemetry {
-        +String Message #123; get; #125;
-        +OperationContext Operation #123; get; init; #125;
-        +PropertyList Properties #123; get; init; #125;
-        +SeverityLevel SeverityLevel #123; get; #125;
-        +TagList Tags #123; get; init; #125;
-        +DateTime Time #123; get; #125;
     }
 
-    Telemetry <|-- MeteredTelemetry
-    MeteredTelemetry <|-- NamedTelemetry
-    NamedTelemetry <|-- OperationTelemetry
-
-    AvailabilityTelemetry ..|> OperationTelemetry
-    DependencyTelemetry ..|> OperationTelemetry
-    EventTelemetry ..|> NamedTelemetry
-    ExceptionTelemetry ..|> MeteredTelemetry
-    RequestTelemetry ..|> OperationTelemetry
+    AvailabilityTelemetry ..|> Telemetry
+    DependencyTelemetry ..|> Telemetry
+    EventTelemetry ..|> Telemetry
+    ExceptionTelemetry ..|> Telemetry
+    PageViewTelemetry ..|> Telemetry
+    RequestTelemetry ..|> Telemetry
     TraceTelemetry ..|> Telemetry
+
+    click Telemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/dev/src/Code/Telemetry.cs" "Telemetry"
+    click AvailabilityTelemetry href "../src/Code/AvailabilityTelemetry.cs" "AvailabilityTelemetry"
+    click DependencyTelemetry href "../../blob/src/Code/AvailabilityTelemetry.cs" "DependencyTelemetry"
 
 ```
