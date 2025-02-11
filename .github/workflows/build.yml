@@ -75,7 +75,7 @@ jobs:
       if: always()
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub,Cobertura'
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.coverage -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub,Cobertura'
 
     - name: Write to Job Summary
       if: always()
