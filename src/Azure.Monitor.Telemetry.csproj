@@ -5,7 +5,6 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
-		<Product>Azure TinyClient.NET</Product>
 		<RootNamespace>Azure.Monitor.Telemetry</RootNamespace>
 	</PropertyGroup>
 
@@ -16,6 +15,22 @@
 			</PropertyGroup>
 		</When>
 		<When Condition=" '$(GITHUB_ACTIONS)' == 'true' ">
+			<PropertyGroup>
+				<TargetFrameworks>net462;net8.0;net9.0</TargetFrameworks>
+			</PropertyGroup>
+			<!--Add dependency only if target framework is .NET 4.6.2-->
+			<ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+				<Reference Include="System.Net.Http" />
+			</ItemGroup>
+			<!--Remove file if target frame work is not .NET 4.6.2-->
+			<ItemGroup Condition=" '$(TargetFramework)' != 'net462' ">
+				<Compile Remove="NET462\IsExternalInit.cs" />
+			</ItemGroup>
+		</When>
+	</Choose>
+
+	<Choose>
+		<When Condition=" '$(Pack)' == 'true' ">
 			<PropertyGroup>
 				<Authors>Stas Sultanov</Authors>
 				<Company>Stas Sultanov</Company>
@@ -29,6 +44,7 @@
 				<PackageReadmeFile>readme.md</PackageReadmeFile>
 				<PackageTags>Azure;Azure Monitor;Azure Monitor Telemetry;Telemetry;ApplicationInsights;</PackageTags>
 				<RepositoryType>git</RepositoryType>
+				<Product>Azure TinyClient.NET</Product>
 				<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 				<TargetFrameworks>net462;net8.0;net9.0</TargetFrameworks>
 				<Title>Azure Monitor Telemetry</Title>
@@ -40,14 +56,6 @@
 			</ItemGroup>
 			<ItemGroup>
 				<PackageReference Include="Microsoft.SourceLink.GitHub" Version="*" PrivateAssets="All" />
-			</ItemGroup>
-			<!--Add dependency only if target framework is .NET 4.6.2-->
-			<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-				<Reference Include="System.Net.Http" />
-			</ItemGroup>
-			<!--Remove file if target frame work is not .NET 4.6.2-->
-			<ItemGroup Condition="'$(TargetFramework)' != 'net462'">
-				<Compile Remove="NET462\IsExternalInit.cs" />
 			</ItemGroup>
 		</When>
 	</Choose>

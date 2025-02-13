@@ -41,14 +41,6 @@ jobs:
         --no-restore
         --verbosity ${{ env.VERBOSITY }}
 
-    - name: Publish Lib
-      run: >-
-        dotnet publish src/Azure.Monitor.Telemetry.csproj
-        --artifacts-path .\pub
-        --configuration ${{ env.BUILD_CONFIGURATION }}
-        --no-build
-        --verbosity ${{ env.VERBOSITY }}
-
     - name: Test
       id: UnitTests
       run: >-
@@ -82,9 +74,9 @@ jobs:
         output: both
         thresholds: '90 95'
 
-    - name: Upload 
-      if: always()
-      uses: actions/upload-artifact@v4
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
       with:
-        name: lib
-        path: .\pub
+        recreate: true
+        path: code-coverage-results.md
