@@ -14,6 +14,8 @@ env:
   SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
   # Path to the test results directory relative to the root of the project.
   TESTS_RESULTS_DIRECTORY: ./testsResults
+  # Verbosity level
+  VERBOSITY: minimal
 
 permissions:
   checks: write
@@ -27,19 +29,27 @@ jobs:
     - name: Checkout Sources
       uses: actions/checkout@v4
 
-    - name: Restore NuGet Packages
+    - name: Restore
       run: >-
         dotnet restore ${{ env.SOLUTION_FILE }}
-        --verbosity minimal
+        --verbosity ${{ env.VERBOSITY }}
 
-    - name: Build Solution
+    - name: Build
       run: >-
         dotnet build ${{ env.SOLUTION_FILE }}
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --no-restore
-        --verbosity minimal
+        --verbosity ${{ env.VERBOSITY }}
 
-    - name: Run Tests
+    - name: Publish
+      run: >-
+        dotnet publish ${{ env.SOLUTION_FILE }}
+        --artifacts-path .\pub
+        --configuration ${{ env.BUILD_CONFIGURATION }}
+        --no-build
+        --verbosity ${{ env.VERBOSITY }}
+
+    - name: Test
       id: UnitTests
       run: >-
         dotnet test ${{ env.SOLUTION_FILE }}
@@ -47,24 +57,34 @@ jobs:
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --filter TestCategory=UnitTests
         --framework net9.0
-        --logger:"console;verbosity=detailed"
-        --logger:"trx;logfileprefix=testResults_"
+        --logger:"trx"
         --no-build
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
-        --verbosity minimal
+        --verbosity ${{ env.VERBOSITY }}
 
-    - name: Publish Tests Results
+    - name: Report Tests Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
 
-    - name: Upload Code Coverage Report
+    - name: Report Code Coverage
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: both
+        thresholds: '90 95'
+
+    - name: Upload 
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: code-coverage-report
-        path: ${{ env.TESTS_RESULTS_DIRECTORY }}
-
-
+        name: lib
+        path: .\pub
