@@ -41,9 +41,9 @@ jobs:
         --no-restore
         --verbosity ${{ env.VERBOSITY }}
 
-    - name: Publish
+    - name: Publish Lib
       run: >-
-        dotnet publish ${{ env.SOLUTION_FILE }}
+        dotnet publish src/Azure.Monitor.Telemetry.csproj
         --artifacts-path .\pub
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --no-build
