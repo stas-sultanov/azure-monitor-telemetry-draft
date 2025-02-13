@@ -10,6 +10,7 @@ using Azure.Monitor.Telemetry.Tests;
 /// The goal is to ensure that all telemetry types can be tracked and published successfully.
 /// </summary>
 /// <param name="testContext">Test context.</param>
+[TestCategory("IntegrationTests")]
 [TestClass]
 public sealed class TelemetryTypesTests(TestContext testContext) : AzureIntegrationTestsBase(testContext)
 {

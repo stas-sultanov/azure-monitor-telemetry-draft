@@ -30,18 +30,20 @@ jobs:
     - name: Restore NuGet Packages
       run: >-
         dotnet restore ${{ env.SOLUTION_FILE }}
+        --verbosity minimal
 
     - name: Build Solution
       run: >-
         dotnet build ${{ env.SOLUTION_FILE }}
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --no-restore
+        --verbosity minimal
 
     - name: Run Tests
       id: UnitTests
       run: >-
         dotnet test ${{ env.SOLUTION_FILE }}
-        --collect:"Code Coverage"
+        --collect:"XPlat Code Coverage"
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --filter TestCategory=UnitTests
         --framework net9.0
@@ -49,7 +51,7 @@ jobs:
         --logger:"trx;logfileprefix=testResults_"
         --no-build
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
-        --verbosity normal
+        --verbosity minimal
 
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
@@ -65,13 +67,4 @@ jobs:
         name: code-coverage-report
         path: ${{ env.TESTS_RESULTS_DIRECTORY }}
 
-    - name: Create code coverage report
-      if: always()
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.coverage -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub,Cobertura'
-
-    - name: Write to Job Summary
-      if: always()
-      run: cat CodeCoverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
