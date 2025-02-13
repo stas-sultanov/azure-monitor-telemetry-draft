@@ -8,27 +8,31 @@ using System.Runtime.CompilerServices;
 
 using Azure.Monitor.Telemetry;
 
-/// <summary>A type with set of methods to serialize <see cref="Telemetry"/> data into the stream using JSON format.</summary>
+/// <summary>
+/// Provides serialization of types that implements <see cref="Telemetry"/> into the stream using JSON format.
+/// </summary>
 /// <remarks>Uses version 2 of the HTTP API of the Azure Monitor service.</remarks>
 public static class JsonTelemetrySerializer
 {
 	#region Constants
 
-	public const String Name_Availability = @"AppAvailabilityResults";
-	public const String Name_Dependency = @"AppDependencies";
-	public const String Name_Event = @"AppEvents";
-	public const String Name_Exception = @"AppExceptions";
-	public const String Name_PageView = @"AppPageViews";
-	public const String Name_Request = @"AppRequests";
-	public const String Name_Trace = @"AppTraces";
-	public const String Type_Availability = "AvailabilityData";
-	public const String Type_Dependency = @"RemoteDependencyData";
-	public const String Type_Event = @"EventData";
-	public const String Type_Exception = @"ExceptionData";
-	public const String Type_PageView = @"PageViewData";
-	public const String Type_Request = @"RequestData";
-	public const String Type_Trace = @"MessageData";
 	private const Int32 ExceptionMaxStackLength = 32768;
+	private const String Name_Availability = @"AppAvailabilityResults";
+	private const String Name_Dependency = @"AppDependencies";
+	private const String Name_Event = @"AppEvents";
+	private const String Name_Exception = @"AppExceptions";
+	private const String Name_Mertic = @"AppMetrics";
+	private const String Name_PageView = @"AppPageViews";
+	private const String Name_Request = @"AppRequests";
+	private const String Name_Trace = @"AppTraces";
+	private const String Type_Availability = "AvailabilityData";
+	private const String Type_Dependency = @"RemoteDependencyData";
+	private const String Type_Event = @"EventData";
+	private const String Type_Exception = @"ExceptionData";
+	private const String Type_Metric = @"MetricData";
+	private const String Type_PageView = @"PageViewData";
+	private const String Type_Request = @"RequestData";
+	private const String Type_Trace = @"MessageData";
 
 	#endregion
 
@@ -43,7 +47,9 @@ public static class JsonTelemetrySerializer
 
 	#region Methods: Serialize
 
-	/// <summary>Serializes the given telemetry data to JSON format and writes it to the <paramref name="streamWriter"/>.</summary>
+	/// <summary>
+	/// Serializes the given telemetry data to JSON format and writes it to the <paramref name="streamWriter"/>.
+	/// </summary>
 	/// <param name="streamWriter">The StreamWriter to which the serialized JSON will be written.</param>
 	/// <param name="instrumentationKey">The instrumentation key associated with the telemetry data.</param>
 	/// <param name="telemetry">The telemetry data to be serialized.</param>
@@ -64,42 +70,59 @@ public static class JsonTelemetrySerializer
 
 		Action<StreamWriter, Telemetry> writeData;
 
+		// MS Engineers are not familiar with the term "CONSISTENCY" and it's meaning.
+		// For TelemetryMetric, Properties must be in other place of the data structure...
+		Boolean writeProperties;
+
 		switch (telemetry)
 		{
 			case AvailabilityTelemetry:
 				name = Name_Availability;
 				baseType = Type_Availability;
 				writeData = WriteDataAvailability;
+				writeProperties = true;
 				break;
 			case DependencyTelemetry:
 				name = Name_Dependency;
 				baseType = Type_Dependency;
 				writeData = WriteDataDependency;
+				writeProperties = true;
 				break;
 			case EventTelemetry:
 				name = Name_Event;
 				baseType = Type_Event;
 				writeData = WriteDataEvent;
+				writeProperties = true;
 				break;
 			case ExceptionTelemetry:
 				name = Name_Exception;
 				baseType = Type_Exception;
 				writeData = WriteDataException;
+				writeProperties = true;
+				break;
+			case MetricTelemetry:
+				name = Name_Mertic;
+				baseType = Type_Metric;
+				writeData = WriteDataMetric;
+				writeProperties = false;
 				break;
 			case PageViewTelemetry:
 				name = Name_PageView;
 				baseType = Type_PageView;
 				writeData = WriteDataPageView;
+				writeProperties = true;
 				break;
 			case RequestTelemetry:
 				name = Name_Request;
 				baseType = Type_Request;
 				writeData = WriteDataRequest;
+				writeProperties = true;
 				break;
 			case TraceTelemetry:
 				name = Name_Trace;
 				baseType = Type_Trace;
 				writeData = WriteDataTrace;
+				writeProperties = true;
 				break;
 			default:
 				return;
@@ -124,7 +147,7 @@ public static class JsonTelemetrySerializer
 		streamWriter.Write("\"");
 
 		// serialize properties
-		if (telemetry.Properties != null && telemetry.Properties.Count != 0)
+		if (writeProperties && telemetry.Properties != null && telemetry.Properties.Count != 0)
 		{
 			streamWriter.Write(",\"properties\":{");
 
@@ -339,6 +362,49 @@ public static class JsonTelemetrySerializer
 		}
 	}
 
+	private static void WriteDataMetric(StreamWriter streamWriter, Telemetry telemetry)
+	{
+		var metricTelemetry = (MetricTelemetry) telemetry;
+
+		streamWriter.Write("\"metrics\":[{");
+
+		if (metricTelemetry.ValueAggregation != null)
+		{
+			streamWriter.Write("\"count\":");
+
+			streamWriter.Write(metricTelemetry.ValueAggregation.Count);
+
+			streamWriter.Write(",\"max\":");
+
+			streamWriter.Write(metricTelemetry.ValueAggregation.Max);
+
+			streamWriter.Write(",\"min\":");
+
+			streamWriter.Write(metricTelemetry.ValueAggregation.Min);
+
+			streamWriter.Write(",");
+		}
+
+		streamWriter.Write("\"name\":\"");
+
+		streamWriter.Write(metricTelemetry.Name);
+
+		streamWriter.Write("\",\"value\":");
+
+		streamWriter.Write(metricTelemetry.Value);
+
+		streamWriter.Write("}]");
+
+		if (metricTelemetry.Properties != null && metricTelemetry.Properties.Count != 0)
+		{
+			streamWriter.Write(",\"properties\":{");
+
+			_ = WriteList(streamWriter, metricTelemetry.Properties, false);
+
+			streamWriter.Write("}");
+		}
+	}
+
 	private static void WriteDataPageView(StreamWriter streamWriter, Telemetry telemetry)
 	{
 		var pageViewTelemetry = (PageViewTelemetry) telemetry;
@@ -414,7 +480,7 @@ public static class JsonTelemetrySerializer
 
 	#endregion
 
-	#region Methods: helpers
+	#region Methods: Helpers
 
 	/// <summary>Serializes data as tags to the <paramref name="writer"/>.</summary>
 	/// <param name="writer">The <see cref="StreamWriter"/> to write the serialized tags to.</param>
@@ -532,6 +598,7 @@ public static class JsonTelemetrySerializer
 	/// <param name="value">The value.</param>
 	/// <param name="scopeHasItems">Indicates whether there are items already within the scope.</param>
 	/// <returns>Returns <c>true</c> if at least one pair has been serialized within the scope, <c>false</c> otherwise.</returns>	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static Boolean WriteKeyValue
 	(
 		StreamWriter streamWriter,

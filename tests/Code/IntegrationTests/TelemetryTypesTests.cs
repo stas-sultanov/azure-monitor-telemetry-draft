@@ -9,20 +9,15 @@ using Azure.Monitor.Telemetry.Tests;
 /// Set of integration tests for all telemetry types.
 /// The goal is to ensure that all telemetry types can be tracked and published successfully.
 /// </summary>
+/// <param name="testContext">Test context.</param>
 [TestClass]
-public sealed class TelemetryTypesTests : AzureIntegrationTestsBase
+public sealed class TelemetryTypesTests(TestContext testContext) : AzureIntegrationTestsBase(testContext)
 {
 	#region Fields
 
 	private readonly TelemetryFactory telemetryFactory = new();
 
 	#endregion
-
-	[TestInitialize]
-	public override void Initialize()
-	{
-		base.Initialize();
-	}
 
 	#region Tests: AvailabilityTelemetry
 
@@ -170,6 +165,53 @@ public sealed class TelemetryTypesTests : AzureIntegrationTestsBase
 	{
 		// arrange
 		var telemetry = telemetryFactory.Create_ExceptionTelemetry_Min();
+
+		// act
+		TelemetryTracker.Add(telemetry);
+
+		var publishResult = await TelemetryTracker.PublishAsync();
+
+		// assert
+		AssertStandardSuccess(publishResult);
+	}
+
+	#endregion
+
+	#region Tests: MetricTelemetry
+
+	/// <summary>
+	/// Tests <see cref="MetricTelemetry"/> with full load.
+	/// </summary>
+	[TestMethod]
+	public async Task Type_MetricTelemetry_Max()
+	{
+		// arrange
+		var aggregation = new MetricValueAggregation()
+		{
+			Count = 3,
+			Min = 1,
+			Max = 3
+		};
+		telemetryFactory.Value = 6;
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Max(aggregation);
+
+		// act
+		TelemetryTracker.Add(telemetry);
+
+		var publishResult = await TelemetryTracker.PublishAsync();
+
+		// assert
+		AssertStandardSuccess(publishResult);
+	}
+
+	/// <summary>
+	/// Tests <see cref="MetricTelemetry"/> with minimum load.
+	/// </summary>
+	[TestMethod]
+	public async Task Type_MetricTelemetry_Min()
+	{
+		// arrange
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Min();
 
 		// act
 		TelemetryTracker.Add(telemetry);

@@ -14,21 +14,15 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 {
 	private const String QueueName = "test";
 
-	#region Data
+	#region Constructors
 
-	private static readonly Random random = new(DateTime.UtcNow.Millisecond);
-
-	private HttpClientTransport queueClientHttpClientTransport;
-
-	private QueueClient queueClient;
-
-	#endregion
-
-	[TestInitialize]
-	public override void Initialize()
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DependencyTrackingTests"/> class.
+	/// </summary>
+	/// <param name="testContext">The test context.</param>
+	public DependencyTrackingTests(TestContext testContext)
+		: base(testContext)
 	{
-		base.Initialize();
-
 		var handler = new TelemetryTrackedHttpClientHandler(TelemetryTracker, () => ActivitySpanId.CreateRandom().ToString());
 
 		queueClientHttpClientTransport = new HttpClientTransport(handler);
@@ -45,6 +39,18 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 		queueClient = queueService.GetQueueClient(QueueName);
 	}
+
+	#endregion
+
+	#region Data
+
+	private static readonly Random random = new(DateTime.UtcNow.Millisecond);
+
+	private readonly HttpClientTransport queueClientHttpClientTransport;
+
+	private readonly QueueClient queueClient;
+
+	#endregion
 
 	#region Tests
 

@@ -28,7 +28,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 	#region Properties
 
-	public TestContext TestContext { get; set; }
+	public TestContext TestContext { get; }
 
 	protected TelemetryTracker TelemetryTracker { get; private set; }
 
@@ -40,8 +40,10 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 	/// Initialize instance.
 	/// </summary>
 	/// <param name="testContext">Test context.</param>
-	public AzureIntegrationTestsBase()
+	public AzureIntegrationTestsBase(TestContext testContext)
 	{
+		TestContext = testContext;
+
 		//// create token credential
 		tokenCredential = new ChainedTokenCredential
 		(
@@ -52,14 +54,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 		// create HTTP Client for telemetry publisher
 		telemetryPublisherHttpClient = new HttpClient();
-	}
 
-	#endregion
-
-	#region Methods
-
-	public virtual void Initialize()
-	{
 		var ingestionEndpoint = new Uri(TestContext.Properties[@"Azure.Monitor.Default.IngestionEndpoint"].ToString());
 		var instrumentationKey = new Guid(TestContext.Properties[@"Azure.Monitor.Default.InstrumentationKey"].ToString());
 
@@ -92,6 +87,10 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			}
 		};
 	}
+
+	#endregion
+
+	#region Methods
 
 	protected static void AssertStandardSuccess(TelemetryPublishResult[] results)
 	{

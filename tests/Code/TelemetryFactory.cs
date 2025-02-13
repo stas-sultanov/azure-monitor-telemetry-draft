@@ -17,6 +17,7 @@ internal class TelemetryFactory
 	public PropertyList Properties { get; set; }
 	public PropertyList Tags { get; set; }
 	public Uri Url { get; set; }
+	public Double Value { get; set; }
 
 	#endregion
 
@@ -45,6 +46,8 @@ internal class TelemetryFactory
 		Tags = [new(TelemetryTagKey.CloudRole, "TestMachine")];
 
 		Url = new Uri("https://gostas.dev");
+
+		Value = 1.0;
 	}
 
 	#endregion
@@ -226,6 +229,31 @@ internal class TelemetryFactory
 		{
 			result = new ExceptionTelemetry(DateTime.UtcNow, exception);
 		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Creates instance of <see cref="MetricTelemetry"/> with full load.
+	/// </summary>
+	public MetricTelemetry Create_MetricTelemetry_Max(MetricValueAggregation aggregation)
+	{
+		var result = new MetricTelemetry(DateTime.UtcNow, Name, Value, aggregation)
+		{
+			Operation = Operation,
+			Properties = Properties,
+			Tags = Tags
+		};
+
+		return result;
+	}
+
+	/// <summary>
+	/// Creates instance of <see cref="MetricTelemetry"/> with minimum load.
+	/// </summary>
+	public MetricTelemetry Create_MetricTelemetry_Min()
+	{
+		var result = new MetricTelemetry(DateTime.UtcNow, Name, Value);
 
 		return result;
 	}

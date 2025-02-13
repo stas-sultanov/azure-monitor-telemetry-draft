@@ -39,7 +39,7 @@
 				<None Include="readme.md" Pack="True" PackagePath="\" />
 			</ItemGroup>
 			<ItemGroup>
-				<PackageReference Include="Microsoft.SourceLink.GitHub" Version="*" PrivateAssets="All"/>
+				<PackageReference Include="Microsoft.SourceLink.GitHub" Version="*" PrivateAssets="All" />
 			</ItemGroup>
 			<!--Add dependency only if target framework is .NET 4.6.2-->
 			<ItemGroup Condition="'$(TargetFramework)' == 'net462'">

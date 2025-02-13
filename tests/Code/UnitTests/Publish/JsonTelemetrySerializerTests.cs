@@ -38,8 +38,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_AvailabilityTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Availability;
-		var expectedType = JsonTelemetrySerializer.Type_Availability;
+		var expectedName = @"AppAvailabilityResults";
+		var expectedType = @"AvailabilityData";
 
 		var telemetry = telemetryFactory.Create_AvailabilityTelemetry_Max();
 
@@ -66,8 +66,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_AvailabilityTelemetry_Min()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Availability;
-		var expectedType = JsonTelemetrySerializer.Type_Availability;
+		var expectedName = @"AppAvailabilityResults";
+		var expectedType = @"AvailabilityData";
 
 		var telemetry = telemetryFactory.Create_AvailabilityTelemetry_Min();
 
@@ -92,8 +92,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_DependencyTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Dependency;
-		var expectedType = JsonTelemetrySerializer.Type_Dependency;
+		var expectedName = @"AppDependencies";
+		var expectedType = @"RemoteDependencyData";
 
 		var telemetry = telemetryFactory.Create_DependencyTelemetry_Max();
 
@@ -124,8 +124,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_DependencyTelemetry_Min()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Dependency;
-		var expectedType = JsonTelemetrySerializer.Type_Dependency;
+		var expectedName = @"AppDependencies";
+		var expectedType = @"RemoteDependencyData";
 
 		var telemetry = telemetryFactory.Create_DependencyTelemetry_Min();
 
@@ -148,8 +148,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_EventTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Event;
-		var expectedType = JsonTelemetrySerializer.Type_Event;
+		var expectedName = @"AppEvents";
+		var expectedType = @"EventData";
 
 		var telemetry = telemetryFactory.Create_EventTelemetry_Max();
 
@@ -172,8 +172,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_ExceptionTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Exception;
-		var expectedType = JsonTelemetrySerializer.Type_Exception;
+		var expectedName = @"AppExceptions";
+		var expectedType = @"ExceptionData";
 
 		var telemetry = telemetryFactory.Create_ExceptionTelemetry_Max();
 
@@ -193,11 +193,48 @@ public class JsonTelemetrySerializerTests
 	}
 
 	[TestMethod]
+	public void Method_Serialize_MetricTelemetry_Max()
+	{
+		// arrange
+		var expectedName = @"AppMetrics";
+		var expectedType = @"MetricData";
+
+		var aggregation = new MetricValueAggregation()
+		{
+			Count = 3,
+			Min = 1,
+			Max = 3
+		};
+		telemetryFactory.Value = 6;
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Max(aggregation);
+
+		// act
+		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry);
+
+		// assert
+		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, [], expectedType);
+
+		var metricJsonElements = jsonElement.GetProperty("metrics").Deserialize<JsonElement[]>();
+
+		var metricJsonElement = metricJsonElements[0];
+
+		DeserializeAndAssert(metricJsonElement, @"count", telemetry.ValueAggregation.Count);
+
+		DeserializeAndAssert(metricJsonElement, @"max", telemetry.ValueAggregation.Max);
+
+		DeserializeAndAssert(metricJsonElement, @"min", telemetry.ValueAggregation.Min);
+
+		DeserializeAndAssert(metricJsonElement, @"name", telemetry.Name);
+
+		DeserializeAndAssert(metricJsonElement, @"value", telemetry.Value);
+	}
+
+	[TestMethod]
 	public void Method_Serialize_PageViewTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_PageView;
-		var expectedType = JsonTelemetrySerializer.Type_PageView;
+		var expectedName = @"AppPageViews";
+		var expectedType = @"PageViewData";
 
 		var telemetry = telemetryFactory.Create_PageViewTelemetry_Max();
 
@@ -220,8 +257,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_RequestTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Request;
-		var expectedType = JsonTelemetrySerializer.Type_Request;
+		var expectedName = @"AppRequests";
+		var expectedType = @"RequestData";
 
 		var telemetry = telemetryFactory.Create_RequestTelemetry_Max();
 
@@ -248,8 +285,8 @@ public class JsonTelemetrySerializerTests
 	public void Method_Serialize_TraceTelemetry_Max()
 	{
 		// arrange
-		var expectedName = JsonTelemetrySerializer.Name_Trace;
-		var expectedType = JsonTelemetrySerializer.Type_Trace;
+		var expectedName = @"AppTraces";
+		var expectedType = @"MessageData";
 
 		var telemetry = telemetryFactory.Create_TraceTelemetry_Max();
 

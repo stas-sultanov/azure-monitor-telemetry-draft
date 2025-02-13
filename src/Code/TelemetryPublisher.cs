@@ -19,7 +19,7 @@ public interface TelemetryPublisher
 	/// <param name="trackerTags">A list of tags to attach to each telemetry item.</param>
 	/// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
 	/// <returns>A task representing the asynchronous operation that returns a <see cref="TelemetryPublishResult"/>.</returns>
-	Task<TelemetryPublishResult> PublishAsync
+	public Task<TelemetryPublishResult> PublishAsync
 	(
 		IReadOnlyList<Telemetry> telemetryList,
 		TagList trackerTags,
