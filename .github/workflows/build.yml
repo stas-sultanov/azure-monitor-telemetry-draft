@@ -64,7 +64,13 @@ jobs:
     - name: Create code coverage report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub,Cobertura'
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub'
 
-    - name: Write to Job Summary
-      run: cat CodeCoverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+    - name: Create CheckRun for code Coverage
+      uses: LouisBrunner/checks-action@v1.2.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Code Coverage
+        conclusion: ${{ job.status }}
+        output: "{\"summary\":\"Code Coverage\"}"
+        output_text_description_file: ./CodeCoverage/SummaryGithub.md
