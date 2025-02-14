@@ -61,21 +61,9 @@ jobs:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.trx
 
-    - name: Report Code Coverage
-      uses: irongut/CodeCoverageSummary@v1.3.0
-      with:
-        filename: ${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml
-        badge: true
-        fail_below_min: true
-        format: markdown
-        hide_branch_rate: false
-        hide_complexity: false
-        indicators: true
-        output: both
-        thresholds: '90 95'
-
     - name: Produce the coverage report
       uses: insightsengineering/coverage-action@v2
+      if: always()
       with:
         # Path to the Cobertura XML report.
         path: ${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml
