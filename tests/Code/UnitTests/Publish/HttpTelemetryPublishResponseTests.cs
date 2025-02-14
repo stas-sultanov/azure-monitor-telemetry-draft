@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 public sealed class HttpTelemetryPublishResponseTests
 {
 	[TestMethod]
-	public void Constructor_ShouldInitializeProperties()
+	public void Constructor()
 	{
 		// arrange
 		var appId = "test-app-id";

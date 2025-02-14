@@ -193,8 +193,7 @@ public sealed class TelemetryTypesTests(TestContext testContext) : AzureIntegrat
 			Min = 1,
 			Max = 3
 		};
-		telemetryFactory.Value = 6;
-		var telemetry = telemetryFactory.Create_MetricTelemetry_Max(aggregation);
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Max("tests", 6, aggregation);
 
 		// act
 		TelemetryTracker.Add(telemetry);
@@ -212,7 +211,7 @@ public sealed class TelemetryTypesTests(TestContext testContext) : AzureIntegrat
 	public async Task Type_MetricTelemetry_Min()
 	{
 		// arrange
-		var telemetry = telemetryFactory.Create_MetricTelemetry_Min();
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Min("tests", 6);
 
 		// act
 		TelemetryTracker.Add(telemetry);

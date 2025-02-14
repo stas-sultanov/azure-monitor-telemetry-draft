@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 public sealed class HttpTelemetryPublishErrorTests
 {
 	[TestMethod]
-	public void Constructor_ShouldInitializeProperties()
+	public void Constructor()
 	{
 		// arrange
 		var index = (UInt16)0;

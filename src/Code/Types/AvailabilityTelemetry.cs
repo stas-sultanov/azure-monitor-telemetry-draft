@@ -41,6 +41,11 @@ public sealed class AvailabilityTelemetry
 	public MeasurementList Measurements { get; init; }
 
 	/// <summary>
+	/// The message.
+	/// </summary>
+	public String Message { get; } = message;
+
+	/// <summary>
 	/// The name.
 	/// </summary>
 	public String Name { get; } = name;
@@ -55,11 +60,6 @@ public sealed class AvailabilityTelemetry
 	/// Location from where the operation has been performed.
 	/// </summary>
 	public String RunLocation { get; init; }
-
-	/// <summary>
-	/// The message.
-	/// </summary>
-	public String Message { get; } = message;
 
 	/// <summary>
 	/// A value indicating whether the operation was successful or unsuccessful.

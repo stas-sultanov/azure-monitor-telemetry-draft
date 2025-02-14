@@ -1,7 +1,9 @@
 // Created by Stas Sultanov.
-// Copyright © Stas Sultanov.
+// Copyright ï¿½ Stas Sultanov.
 
 namespace Azure.Monitor.Telemetry.UnitTests;
+
+using Azure.Monitor.Telemetry.Tests;
 
 /// <summary>
 /// Tests for <see cref="TelemetryOperation"/> class.
@@ -11,7 +13,7 @@ namespace Azure.Monitor.Telemetry.UnitTests;
 public sealed class TelemetryOperationTests
 {
 	[TestMethod]
-	public void Constructor_ShouldInitializeProperties()
+	public void Constructor()
 	{
 		// arrange
 		var id = "testId";
@@ -20,7 +22,7 @@ public sealed class TelemetryOperationTests
 		var syntheticSource = "testSyntheticSource";
 
 		// act
-		var telemetryOperation = new TelemetryOperation
+		var operation = new TelemetryOperation
 		{
 			Id = id,
 			Name = name,
@@ -29,12 +31,29 @@ public sealed class TelemetryOperationTests
 		};
 
 		// assert
-		Assert.AreEqual(id, telemetryOperation.Id, nameof(TelemetryOperation.Id));
+		AssertHelpers.PropertiesAreEqual(operation, id, name, parentId, syntheticSource);
+	}
 
-		Assert.AreEqual(name, telemetryOperation.Name, nameof(TelemetryOperation.Id));
+	[TestMethod]
+	public void Constructor_Copy()
+	{
+		// arrange
+		var newParentId = "newTestParentId";
+		var operation = new TelemetryOperation
+		{
+			Id = "testId",
+			Name = "testName",
+			ParentId = "testParentId",
+			SyntheticSource = "testSyntheticSource"
+		};
 
-		Assert.AreEqual(parentId, telemetryOperation.ParentId, nameof(TelemetryOperation.ParentId));
+		// act
+		var newOperation = operation with
+		{
+			ParentId = newParentId
+		};
 
-		Assert.AreEqual(syntheticSource, telemetryOperation.SyntheticSource, nameof(TelemetryOperation.SyntheticSource));
+		// assert
+		AssertHelpers.PropertiesAreEqual(newOperation, operation.Id, operation.Name, newParentId, operation.SyntheticSource);
 	}
 }

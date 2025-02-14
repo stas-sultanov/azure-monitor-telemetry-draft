@@ -129,6 +129,48 @@ public sealed class TelemetryTracker
 	}
 
 	/// <summary>
+	/// Tracks availability by creating an instance of <see cref="AvailabilityTelemetry"/> and calling the <see cref="Add(Telemetry)"/> method.
+	/// </summary>
+	/// <param name="time">The time when the dependency call was initiated.</param>
+	/// <param name="id">The unique identifier for the dependency call.</param>
+	/// <param name="name">The name of the telemetry instance.</param>
+	/// <param name="message">The message associated with the telemetry instance.</param>
+	/// <param name="duration">The duration of the dependency call.</param>
+	/// <param name="success">A boolean indicating whether the dependency call was successful.</param>
+	/// <param name="runLocation">The location where the telemetry was run. This parameter is optional.</param>
+	/// <param name="measurements">The measurements associated with the telemetry. This parameter is optional.</param>
+	/// <param name="properties">The properties associated with the telemetry. This parameter is optional.</param>
+	/// <param name="tags">The tags associated with the telemetry. This parameter is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void TrackAvailability
+	(
+		DateTime time,
+		String id,
+		String name,
+		String message,
+		TimeSpan duration,
+		Boolean success,
+		String runLocation = null,
+		MeasurementList measurements = null,
+		PropertyList properties = null,
+		TagList tags = null
+	)
+	{
+		var telemetry = new AvailabilityTelemetry(time, id, name, message)
+		{
+			Duration = duration,
+			Measurements = measurements,
+			Operation = Operation,
+			Properties = properties,
+			RunLocation = runLocation,
+			Success = success,
+			Tags = tags
+		};
+
+		Add(telemetry);
+	}
+
+	/// <summary>
 	/// Tracks dependency by creating an instance of <see cref="DependencyTelemetry"/> and calling the <see cref="Add(Telemetry)"/> method.
 	/// </summary>
 	/// <param name="time">The time when the dependency call was initiated.</param>
@@ -272,6 +314,66 @@ public sealed class TelemetryTracker
 			Operation = Operation,
 			Properties = properties,
 			SeverityLevel = severityLevel,
+			Tags = tags
+		};
+
+		Add(telemetry);
+	}
+
+	/// <summary>
+	/// Tracks metric by creating an instance of <see cref="MetricTelemetry"/> and calling the <see cref="Add(Telemetry)"/> method.
+	/// </summary>
+	/// <param name="namespace">The namespace of the metric to be tracked.</param>
+	/// <param name="name">The name of the metric to be tracked.</param>
+	/// <param name="value">The value of the metric to be tracked.</param>
+	/// <param name="valueAggregation">The aggregation type of the metric. This parameter is optional.</param>
+	/// <param name="properties">The properties associated with the telemetry. This parameter is optional.</param>
+	/// <param name="tags">The tags associated with the telemetry. This parameter is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void TrackMetric
+	(
+		String @namespace,
+		String name,
+		Double value,
+		MetricValueAggregation valueAggregation = null,
+		PropertyList properties = null,
+		TagList tags = null
+	)
+	{
+		var time = DateTime.UtcNow;
+
+		var telemetry = new MetricTelemetry(time, @namespace, name, value, valueAggregation)
+		{
+			Operation = Operation,
+			Properties = properties,
+			Tags = tags
+		};
+
+		Add(telemetry);
+	}
+
+	/// <summary>
+	/// Tracks trace by creating an instance of <see cref="TraceTelemetry"/> and calling the <see cref="Add(Telemetry)"/> method.
+	/// </summary>
+	/// <param name="message">The message.</param>
+	/// <param name="severityLevel">The severity level.</param>
+	/// <param name="properties">The properties associated with the telemetry. This parameter is optional.</param>
+	/// <param name="tags">The tags associated with the telemetry. This parameter is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void TrackTrace
+	(
+		String message,
+		SeverityLevel severityLevel,
+		PropertyList properties = null,
+		TagList tags = null
+	)
+	{
+		var time = DateTime.UtcNow;
+
+		var telemetry = new TraceTelemetry(time, message, severityLevel)
+		{
+			Operation = Operation,
+			Properties = properties,
 			Tags = tags
 		};
 

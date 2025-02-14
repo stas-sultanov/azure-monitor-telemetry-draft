@@ -22,8 +22,8 @@ public class JsonTelemetrySerializerTests
 	private sealed class UnknownTelemetry(DateTime time) : Telemetry
 	{
 		public TelemetryOperation Operation { get; set; } = null;
-		public IReadOnlyList<KeyValuePair<String, String>> Properties { get; set; } = null;
-		public IReadOnlyList<KeyValuePair<String, String>> Tags { get; set; } = null;
+		public PropertyList Properties { get; set; } = null;
+		public TagList Tags { get; set; } = null;
 		public DateTime Time { get; init; } = time;
 	}
 
@@ -49,17 +49,19 @@ public class JsonTelemetrySerializerTests
 		// assert
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, [], expectedType);
 
-		DeserializeAndAssert(jsonElement, @"id", telemetry.Id);
+		var id = jsonElement.GetProperty(@"id").Deserialize<String>();
 
-		DeserializeAndAssert(jsonElement, @"name", telemetry.Name);
+		var name = jsonElement.GetProperty(@"name").Deserialize<String>();
 
-		DeserializeAndAssert(jsonElement, @"duration", telemetry.Duration);
+		var duration = jsonElement.GetProperty(@"duration").Deserialize<TimeSpan>();
 
-		DeserializeAndAssert(jsonElement, @"success", telemetry.Success);
+		var success = jsonElement.GetProperty(@"success").Deserialize<Boolean>();
 
-		DeserializeAndAssert(jsonElement, @"runLocation", telemetry.RunLocation);
+		var runLocation = jsonElement.GetProperty(@"runLocation").Deserialize<String>();
 
-		DeserializeAndAssert(jsonElement, @"message", telemetry.Message);
+		var message = jsonElement.GetProperty(@"message").Deserialize<String>();
+
+		AssertHelpers.PropertiesAreEqual(telemetry, duration, id, telemetryFactory.Measurements, message, name, runLocation, success);
 	}
 
 	[TestMethod]
@@ -77,15 +79,17 @@ public class JsonTelemetrySerializerTests
 		// assert
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, [], expectedType);
 
-		DeserializeAndAssert(jsonElement, @"id", telemetry.Id);
+		var id = jsonElement.GetProperty(@"id").Deserialize<String>();
 
-		DeserializeAndAssert(jsonElement, @"name", telemetry.Name);
+		var name = jsonElement.GetProperty(@"name").Deserialize<String>();
 
-		DeserializeAndAssert(jsonElement, @"duration", telemetry.Duration);
+		var duration = jsonElement.GetProperty(@"duration").Deserialize<TimeSpan>();
 
-		DeserializeAndAssert(jsonElement, @"success", telemetry.Success);
+		var success = jsonElement.GetProperty(@"success").Deserialize<Boolean>();
 
-		DeserializeAndAssert(jsonElement, @"message", telemetry.Message);
+		var message = jsonElement.GetProperty(@"message").Deserialize<String>();
+
+		AssertHelpers.PropertiesAreEqual(telemetry, duration, id, null, message, name, null, success);
 	}
 
 	[TestMethod]
@@ -205,8 +209,7 @@ public class JsonTelemetrySerializerTests
 			Min = 1,
 			Max = 3
 		};
-		telemetryFactory.Value = 6;
-		var telemetry = telemetryFactory.Create_MetricTelemetry_Max(aggregation);
+		var telemetry = telemetryFactory.Create_MetricTelemetry_Max("tests", 6, aggregation);
 
 		// act
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry);

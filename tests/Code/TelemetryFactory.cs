@@ -5,7 +5,10 @@ namespace Azure.Monitor.Telemetry.Tests;
 
 using System;
 
-internal class TelemetryFactory
+/// <summary>
+/// Provides instances of classes that implements <see cref="Telemetry"/> for testing purposes.
+/// </summary>
+internal sealed class TelemetryFactory
 {
 	#region Properties
 
@@ -17,7 +20,6 @@ internal class TelemetryFactory
 	public PropertyList Properties { get; set; }
 	public PropertyList Tags { get; set; }
 	public Uri Url { get; set; }
-	public Double Value { get; set; }
 
 	#endregion
 
@@ -46,8 +48,6 @@ internal class TelemetryFactory
 		Tags = [new(TelemetryTagKey.CloudRole, "TestMachine")];
 
 		Url = new Uri("https://gostas.dev");
-
-		Value = 1.0;
 	}
 
 	#endregion
@@ -236,9 +236,14 @@ internal class TelemetryFactory
 	/// <summary>
 	/// Creates instance of <see cref="MetricTelemetry"/> with full load.
 	/// </summary>
-	public MetricTelemetry Create_MetricTelemetry_Max(MetricValueAggregation aggregation)
+	public MetricTelemetry Create_MetricTelemetry_Max
+	(
+		String @namespace,
+		Double value,
+		MetricValueAggregation aggregation
+	)
 	{
-		var result = new MetricTelemetry(DateTime.UtcNow, Name, Value, aggregation)
+		var result = new MetricTelemetry(DateTime.UtcNow, @namespace, Name, value, aggregation)
 		{
 			Operation = Operation,
 			Properties = Properties,
@@ -251,9 +256,13 @@ internal class TelemetryFactory
 	/// <summary>
 	/// Creates instance of <see cref="MetricTelemetry"/> with minimum load.
 	/// </summary>
-	public MetricTelemetry Create_MetricTelemetry_Min()
+	public MetricTelemetry Create_MetricTelemetry_Min
+	(
+		String @namespace,
+		Double value
+	)
 	{
-		var result = new MetricTelemetry(DateTime.UtcNow, Name, Value);
+		var result = new MetricTelemetry(DateTime.UtcNow, @namespace, Name, value);
 
 		return result;
 	}
