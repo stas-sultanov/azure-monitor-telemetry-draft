@@ -389,6 +389,10 @@ public static class JsonTelemetrySerializer
 
 		streamWriter.Write(metricTelemetry.Name);
 
+		streamWriter.Write("\",\"ns\":\"");
+
+		streamWriter.Write(metricTelemetry.Namespace);
+
 		streamWriter.Write("\",\"value\":");
 
 		streamWriter.Write(metricTelemetry.Value);
