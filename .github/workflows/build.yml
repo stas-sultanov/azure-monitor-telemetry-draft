@@ -71,13 +71,5 @@ jobs:
         threshold: 95
         # Fail the workflow if the code coverage is below the threshold
         fail: true
-        # Publish the rendered output as a PR comment
-        publish: true
+        # Title of the code coverage summary
         coverage-summary-title: "Code Coverage Summary"
-
-    - name: Add Coverage PR Comment
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request'
-      with:
-        recreate: true
-        path: code-coverage-results.md
