@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   Run:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout Sources
@@ -59,7 +59,7 @@ jobs:
       if: always()
       with:
         files: |
-          ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.trx
 
     - name: Report Code Coverage
       uses: irongut/CodeCoverageSummary@v1.3.0
@@ -73,6 +73,19 @@ jobs:
         indicators: true
         output: both
         thresholds: '90 95'
+
+    - name: Produce the coverage report
+      uses: insightsengineering/coverage-action@v2
+      with:
+        # Path to the Cobertura XML report.
+        path: ${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml
+        # Minimum total coverage
+        threshold: 95
+        # Fail the workflow if the code coverage is below the threshold
+        fail: true
+        # Publish the rendered output as a PR comment
+        publish: true
+        coverage-summary-title: "Code Coverage Summary"
 
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
