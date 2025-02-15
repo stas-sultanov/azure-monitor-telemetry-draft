@@ -1,15 +1,15 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# Azure Monitor Telemetry 
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+A tiny and very effective library to work via components aka Application Insights.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+# Why Consider This Library
+Standard Application Insights library has the following disadvantages. 
+
+
+1.  Is considered as deprecated.
+2.  Is not designed to work in certain scenarios like Power Platform plugins.
+3.  Has problems with authentication.
+4.  Slow.
 
 # Class Diagram
 
