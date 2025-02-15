@@ -10,6 +10,8 @@ on:
 env:
   # Configuration type to build.
   BUILD_CONFIGURATION: Release
+  # Path to the coverage report directory relative to the root of the project.
+  TESTS_COVERAGE_DIRECTORY: ./testsCoverage
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
   # Path to the test results directory relative to the root of the project.
@@ -54,23 +56,22 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
         --verbosity ${{ env.VERBOSITY }}
 
-    - name: Report Tests Results
+    - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.trx
 
-    - name: Create code coverage report
+    - name: Convert Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/**/coverage.cobertura.xml -targetdir:CodeCoverage -reporttypes:'MarkdownSummaryGithub'
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/*/coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY }} -reporttypes:'MarkdownSummaryGithub'
 
-    - name: Create CheckRun for code Coverage
+    - name: Publish Coverage Report
       uses: LouisBrunner/checks-action@v1.2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: Code Coverage
+        name: Test Coverage
         conclusion: ${{ job.status }}
-        output: "{\"summary\":\"Code Coverage\"}"
-        output_text_description_file: ./CodeCoverage/SummaryGithub.md
+        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY }}/SummaryGithub.md
