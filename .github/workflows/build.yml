@@ -74,4 +74,5 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: Test Coverage
         conclusion: ${{ job.status }}
+        output: "{\"summary\":\"Coverage\"}"
         output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY }}/SummaryGithub.md
