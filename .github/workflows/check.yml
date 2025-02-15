@@ -85,7 +85,8 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ env.LANGUAGE }}
-        build-mode: manual
+        # For C#, the CodeQL database is generated directly from the codebase without requiring a build
+        build-mode: none
   
     # Initializes the CodeQL tools for scanning
     - name: Run CodeQL
