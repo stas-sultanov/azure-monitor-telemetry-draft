@@ -11,16 +11,16 @@ on:
 env:
   # Configuration type to build.
   BUILD_CONFIGURATION: Release
-  # Path to the coverage report directory relative to the root of the project.
-  TESTS_COVERAGE_DIRECTORY: ./testsCoverage
+  # Language to analyze
+  LANGUAGE: csharp
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
+  # Path to the coverage report directory relative to the root of the project.
+  TESTS_COVERAGE_DIRECTORY: ./testsCoverage
   # Path to the test results directory relative to the root of the project.
   TESTS_RESULTS_DIRECTORY: ./testsResults
   # Verbosity level
   VERBOSITY: minimal
-  # Language to analyze
-  LANGUAGE: csharp
 
 jobs:
   Run:
@@ -29,6 +29,8 @@ jobs:
     permissions:
       checks: write
       pull-requests: write
+      # Required for CodeQL
+      security-events: write
 
     steps:
     - name: Checkout Sources
@@ -92,4 +94,4 @@ jobs:
     - name: Run CodeQL
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:{{ env.LANGUAGE }}"
+        category: "/language:${{ env.LANGUAGE }}"
