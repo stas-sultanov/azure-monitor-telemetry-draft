@@ -102,7 +102,7 @@ internal sealed class TelemetryFactory
 			Measurements = Measurements,
 			Operation = Operation,
 			Properties = Properties,
-			RunLocation = "Mordor",
+			RunLocation = "Earth",
 			Success = true,
 			Tags = Tags,
 		};

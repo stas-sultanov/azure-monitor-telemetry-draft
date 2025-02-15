@@ -1,5 +1,5 @@
 // Created by Stas Sultanov.
-// Copyright © Stas Sultanov.
+// Copyright ï¿½ Stas Sultanov.
 
 namespace Azure.Monitor.Telemetry.UnitTests;
 
@@ -67,7 +67,7 @@ public sealed class ExtensionsTests
 	}
 
 	[TestMethod]
-	public void Method_TrackDependency_WithMeassurementsIsArray()
+	public void Method_TrackDependency_WithMeasurementsIsArray()
 	{
 		// arrange
 		var id = "test-id";
@@ -105,7 +105,7 @@ public sealed class ExtensionsTests
 	}
 
 	[TestMethod]
-	public void Method_TrackDependency_WithMeassurementsIsList()
+	public void Method_TrackDependency_WithMeasurementsIsList()
 	{
 		// arrange
 		var id = "test-id";

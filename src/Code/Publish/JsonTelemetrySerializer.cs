@@ -21,7 +21,7 @@ public static class JsonTelemetrySerializer
 	private const String Name_Dependency = @"AppDependencies";
 	private const String Name_Event = @"AppEvents";
 	private const String Name_Exception = @"AppExceptions";
-	private const String Name_Mertic = @"AppMetrics";
+	private const String Name_Metric = @"AppMetrics";
 	private const String Name_PageView = @"AppPageViews";
 	private const String Name_Request = @"AppRequests";
 	private const String Name_Trace = @"AppTraces";
@@ -101,7 +101,7 @@ public static class JsonTelemetrySerializer
 				writeProperties = true;
 				break;
 			case MetricTelemetry:
-				name = Name_Mertic;
+				name = Name_Metric;
 				baseType = Type_Metric;
 				writeData = WriteDataMetric;
 				writeProperties = false;
