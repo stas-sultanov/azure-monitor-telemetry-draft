@@ -10,6 +10,14 @@ using System;
 /// </summary>
 internal static class AssertHelpers
 {
+	#region Static: Fields
+
+	private static readonly KeyValuePairEqualityComparer<String, Double> measurementComparer = new(StringComparer.InvariantCulture, EqualityComparer<Double>.Default);
+
+	private static readonly KeyValuePairEqualityComparer<String, String> propertyComparer = new(StringComparer.InvariantCulture, StringComparer.InvariantCulture);
+
+	#endregion
+
 	#region Methods: AreEqual
 
 	/// <summary>
@@ -26,7 +34,7 @@ internal static class AssertHelpers
 	/// </exception>
 	public static void AreEqual(TelemetryOperation expected, TelemetryOperation actual)
 	{
-		// check if both params are not referencing to the same object
+		// check if both params are referencing to the same object
 		if (ReferenceEquals(expected, actual))
 		{
 			return;
@@ -39,27 +47,6 @@ internal static class AssertHelpers
 		Assert.AreEqual(expected.ParentId, actual.ParentId, nameof(TelemetryOperation.ParentId));
 
 		Assert.AreEqual(expected.SyntheticSource, actual.SyntheticSource, nameof(TelemetryOperation.SyntheticSource));
-	}
-
-	/// <summary>
-	/// Tests whether the specified values are equal and throws an exception if the two values are not equal.
-	/// </summary>
-	/// <param name="expected">
-	/// The first value to compare. This is the value the tests expects.
-	/// </param>
-	/// <param name="actual">
-	/// The second value to compare. This is the value produced by the code under test.
-	/// </param>
-	/// <exception cref="AssertFailedException">
-	/// Thrown if <paramref name="expected"/> is not equal to <paramref name="actual"/>.
-	/// </exception>
-	private static void AreEqual(Telemetry expected, Telemetry actual)
-	{
-		AreEqual(expected.Operation, actual.Operation);
-
-		// CollectionAssert.AreEquivalent(expected.Tags, actual.Tags);
-
-		Assert.AreEqual(expected.Time, actual.Time, nameof(Telemetry.Time));
 	}
 
 	#endregion
@@ -92,18 +79,20 @@ internal static class AssertHelpers
 	/// </summary>
 	public static void PropertiesAreEqual
 	(
-		Telemetry actual,
+		Telemetry telemetry,
 		TelemetryOperation operation,
 		PropertyList properties,
 		TagList tags,
 		DateTime? time = null
 	)
 	{
-		AreEqual(operation, actual.Operation);
+		AreEqual(operation, telemetry.Operation);
+
+		CollectionAssert.AreEquivalent(properties, telemetry.Properties, propertyComparer, nameof(Telemetry.Properties));
 
 		if (time.HasValue)
 		{
-			Assert.AreEqual(time, actual.Time, nameof(Telemetry.Time));
+			Assert.AreEqual(time, telemetry.Time, nameof(Telemetry.Time));
 		}
 	}
 
@@ -126,7 +115,7 @@ internal static class AssertHelpers
 
 		Assert.AreEqual(id, telemetry.Id, nameof(AvailabilityTelemetry.Id));
 
-		// Assert.AreEqual(measurements, telemetry.Measurements, nameof(ExceptionTelemetry.Measurements));
+		CollectionAssert.AreEquivalent(measurements, telemetry.Measurements, measurementComparer, nameof(AvailabilityTelemetry.Measurements));
 
 		Assert.AreEqual(message, telemetry.Message, nameof(AvailabilityTelemetry.Message));
 
@@ -160,7 +149,7 @@ internal static class AssertHelpers
 
 		Assert.AreEqual(id, telemetry.Id, nameof(DependencyTelemetry.Id));
 
-		// Assert.AreEqual(measurements, telemetry.Measurements, nameof(DependencyTelemetry.Measurements));
+		CollectionAssert.AreEquivalent(measurements, telemetry.Measurements, measurementComparer, nameof(DependencyTelemetry.Measurements));
 
 		Assert.AreEqual(name, telemetry.Name, nameof(DependencyTelemetry.Name));
 
@@ -183,7 +172,7 @@ internal static class AssertHelpers
 		String name
 	)
 	{
-		// Assert.AreEqual(measurements, telemetry.Measurements, nameof(EventTelemetry.Measurements));
+		CollectionAssert.AreEquivalent(measurements, telemetry.Measurements, measurementComparer, nameof(EventTelemetry.Measurements));
 
 		Assert.AreEqual(name, telemetry.Name, nameof(EventTelemetry.Name));
 	}
@@ -201,7 +190,7 @@ internal static class AssertHelpers
 	{
 		Assert.AreEqual(exception, telemetry.Exception, nameof(ExceptionTelemetry.Exception));
 
-		Assert.AreEqual(measurements, telemetry.Measurements, nameof(EventTelemetry.Measurements));
+		CollectionAssert.AreEquivalent(measurements, telemetry.Measurements, measurementComparer, nameof(ExceptionTelemetry.Measurements));
 
 		Assert.AreEqual(severityLevel, telemetry.SeverityLevel, nameof(ExceptionTelemetry.SeverityLevel));
 	}
@@ -255,7 +244,7 @@ internal static class AssertHelpers
 
 		Assert.AreEqual(id, telemetry.Id, nameof(RequestTelemetry.Id));
 
-		Assert.AreEqual(measurements, telemetry.Measurements, nameof(RequestTelemetry.Measurements));
+		CollectionAssert.AreEquivalent(measurements, telemetry.Measurements, measurementComparer, nameof(RequestTelemetry.Measurements));
 
 		Assert.AreEqual(name, telemetry.Name, nameof(RequestTelemetry.Name));
 
