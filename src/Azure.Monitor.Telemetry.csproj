@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Azure.Monitor.Telemetry</AssemblyName>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>Azure.Monitor.Telemetry</RootNamespace>
+	</PropertyGroup>
+
+	<Choose>
+		<When Condition=" '$(GITHUB_ACTIONS)' != 'true' ">
+			<PropertyGroup>
+				<TargetFramework>net9.0</TargetFramework>
+			</PropertyGroup>
+		</When>
+		<When Condition=" '$(GITHUB_ACTIONS)' == 'true' ">
+			<PropertyGroup>
+				<TargetFrameworks>net462;net8.0;net9.0</TargetFrameworks>
+			</PropertyGroup>
+			<!--Add dependency only if target framework is .NET 4.6.2-->
+			<ItemGroup Condition=" '$(TargetFramework)' == 'net462' ">
+				<Reference Include="System.Net.Http" />
+			</ItemGroup>
+			<!--Remove file if target frame work is not .NET 4.6.2-->
+			<ItemGroup Condition=" '$(TargetFramework)' != 'net462' ">
+				<Compile Remove="NET462\IsExternalInit.cs" />
+			</ItemGroup>
+		</When>
+	</Choose>
+
+	<Choose>
+		<When Condition=" '$(Pack)' == 'true' ">
+			<PropertyGroup>
+				<Authors>Stas Sultanov</Authors>
+				<Company>Stas Sultanov</Company>
+				<Copyright>© Stas Sultanov</Copyright>
+				<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+				<Description>This client library enables tracking Application Telemetry and publishing it to Azure Monitor.</Description>
+				<EmbedUntrackedSources>true</EmbedUntrackedSources>
+				<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+				<IncludeSymbols>true</IncludeSymbols>
+				<PackageIcon>icon.png</PackageIcon>
+				<PackageReadmeFile>readme.md</PackageReadmeFile>
+				<PackageTags>Azure;Azure Monitor;Azure Monitor Telemetry;Telemetry;ApplicationInsights;</PackageTags>
+				<RepositoryType>git</RepositoryType>
+				<Product>Azure TinyClient.NET</Product>
+				<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+				<TargetFrameworks>net462;net8.0;net9.0</TargetFrameworks>
+				<Title>Azure Monitor Telemetry</Title>
+				<Version>$(AssemblyVersion)</Version>
+			</PropertyGroup>
+			<ItemGroup>
+				<None Include="icon.png" Pack="True" PackagePath="\" />
+				<None Include="readme.md" Pack="True" PackagePath="\" />
+			</ItemGroup>
+			<ItemGroup>
+				<PackageReference Include="Microsoft.SourceLink.GitHub" Version="*" PrivateAssets="All" />
+			</ItemGroup>
+		</When>
+	</Choose>
+
+</Project>
