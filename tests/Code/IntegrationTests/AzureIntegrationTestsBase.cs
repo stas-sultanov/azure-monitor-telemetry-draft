@@ -80,7 +80,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 		TelemetryTracker = new TelemetryTracker(telemetryPublishers: httpTelemetryPublisher)
 		{
 			// create root operation
-			Operation = new TelemetryOperation
+			Operation = new OperationContext
 			{
 				Id = Guid.NewGuid().ToString("N"),
 				Name = $"Test # {DateTime.UtcNow:dd-hh-mm}"

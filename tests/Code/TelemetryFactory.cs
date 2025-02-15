@@ -16,7 +16,7 @@ internal sealed class TelemetryFactory
 	public MeasurementList Measurements { get; set; }
 	public String Message { get; set; }
 	public String Name { get; set; }
-	public TelemetryOperation Operation { get; set; }
+	public OperationContext Operation { get; set; }
 	public PropertyList Properties { get; set; }
 	public PropertyList Tags { get; set; }
 	public Uri Url { get; set; }
@@ -33,7 +33,7 @@ internal sealed class TelemetryFactory
 
 		Name = "name";
 
-		Operation = new TelemetryOperation()
+		Operation = new OperationContext()
 		{
 			Id = Guid.NewGuid().ToString("N"),
 			ParentId = null,

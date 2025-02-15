@@ -28,7 +28,7 @@ public sealed class TelemetryTracker
 	private static readonly TelemetryPublishResult[] emptySuccess = [];
 	private readonly ConcurrentQueue<Telemetry> items = new();
 	private readonly TagList tags = tags;
-	private readonly AsyncLocal<TelemetryOperation> operation = new();
+	private readonly AsyncLocal<OperationContext> operation = new();
 	private readonly TelemetryPublisher[] telemetryPublishers = telemetryPublishers;
 
 	#endregion
@@ -38,7 +38,7 @@ public sealed class TelemetryTracker
 	/// <summary>
 	/// An asynchronous local storage for the current telemetry operation.
 	/// </summary>
-	public TelemetryOperation Operation
+	public OperationContext Operation
 	{
 		get => operation.Value;
 
@@ -114,7 +114,7 @@ public sealed class TelemetryTracker
 	#region Methods: Track
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public TelemetryOperation TrackBegin
+	public OperationContext TrackBegin
 	(
 		String id
 	)

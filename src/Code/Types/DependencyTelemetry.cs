@@ -57,7 +57,7 @@ public sealed class DependencyTelemetry
 	public String Name { get; } = name;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <summary>
 	/// This field is the result code of a dependency call.

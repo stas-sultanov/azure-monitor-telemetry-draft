@@ -21,7 +21,7 @@ public class JsonTelemetrySerializerTests
 
 	private sealed class UnknownTelemetry(DateTime time) : Telemetry
 	{
-		public TelemetryOperation Operation { get; set; } = null;
+		public OperationContext Operation { get; set; } = null;
 		public PropertyList Properties { get; set; } = null;
 		public TagList Tags { get; set; } = null;
 		public DateTime Time { get; init; } = time;

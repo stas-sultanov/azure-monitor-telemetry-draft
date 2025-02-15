@@ -32,7 +32,7 @@ internal static class AssertHelpers
 	/// <exception cref="AssertFailedException">
 	/// Thrown if <paramref name="expected"/> is not equal to <paramref name="actual"/>.
 	/// </exception>
-	public static void AreEqual(TelemetryOperation expected, TelemetryOperation actual)
+	public static void AreEqual(OperationContext expected, OperationContext actual)
 	{
 		// check if both params are referencing to the same object
 		if (ReferenceEquals(expected, actual))
@@ -40,13 +40,13 @@ internal static class AssertHelpers
 			return;
 		}
 
-		Assert.AreEqual(expected.Id, actual.Id, nameof(TelemetryOperation.Id));
+		Assert.AreEqual(expected.Id, actual.Id, nameof(OperationContext.Id));
 
-		Assert.AreEqual(expected.Name, actual.Name, nameof(TelemetryOperation.Name));
+		Assert.AreEqual(expected.Name, actual.Name, nameof(OperationContext.Name));
 
-		Assert.AreEqual(expected.ParentId, actual.ParentId, nameof(TelemetryOperation.ParentId));
+		Assert.AreEqual(expected.ParentId, actual.ParentId, nameof(OperationContext.ParentId));
 
-		Assert.AreEqual(expected.SyntheticSource, actual.SyntheticSource, nameof(TelemetryOperation.SyntheticSource));
+		Assert.AreEqual(expected.SyntheticSource, actual.SyntheticSource, nameof(OperationContext.SyntheticSource));
 	}
 
 	#endregion
@@ -54,24 +54,24 @@ internal static class AssertHelpers
 	#region Methods: Properties Are Equal
 
 	/// <summary>
-	/// Tests whether data within the instance of <see cref="TelemetryOperation"/> is equal to the expected values.
+	/// Tests whether data within the instance of <see cref="OperationContext"/> is equal to the expected values.
 	/// </summary>
 	public static void PropertiesAreEqual
 	(
-		TelemetryOperation actual,
+		OperationContext actual,
 		String id,
 		String name,
 		String parentId,
 		String syntheticSource
 	)
 	{
-		Assert.AreEqual(id, actual.Id, nameof(TelemetryOperation.Id));
+		Assert.AreEqual(id, actual.Id, nameof(OperationContext.Id));
 
-		Assert.AreEqual(name, actual.Name, nameof(TelemetryOperation.Name));
+		Assert.AreEqual(name, actual.Name, nameof(OperationContext.Name));
 
-		Assert.AreEqual(parentId, actual.ParentId, nameof(TelemetryOperation.ParentId));
+		Assert.AreEqual(parentId, actual.ParentId, nameof(OperationContext.ParentId));
 
-		Assert.AreEqual(syntheticSource, actual.SyntheticSource, nameof(TelemetryOperation.SyntheticSource));
+		Assert.AreEqual(syntheticSource, actual.SyntheticSource, nameof(OperationContext.SyntheticSource));
 	}
 
 	/// <summary>
@@ -80,7 +80,7 @@ internal static class AssertHelpers
 	public static void PropertiesAreEqual
 	(
 		Telemetry telemetry,
-		TelemetryOperation operation,
+		OperationContext operation,
 		PropertyList properties,
 		TagList tags,
 		DateTime? time = null

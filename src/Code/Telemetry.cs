@@ -13,7 +13,7 @@ public interface Telemetry
 	/// <summary>
 	/// The details about the telemetry operation being performed.
 	/// </summary>
-	public TelemetryOperation Operation { get; }
+	public OperationContext Operation { get; }
 
 	/// <summary>
 	/// A collection of custom properties in a name-value format.

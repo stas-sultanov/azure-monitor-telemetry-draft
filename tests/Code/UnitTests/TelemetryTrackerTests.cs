@@ -24,7 +24,7 @@ public sealed class TelemetryTrackerTests
 	#region Fields
 
 	private readonly MeasurementList measurements = [new("m", 0)];
-	private readonly TelemetryOperation operation = new() { Id = new Guid().ToString("N"), Name = "Test" };
+	private readonly OperationContext operation = new() { Id = new Guid().ToString("N"), Name = "Test" };
 	private readonly PropertyList properties = [new("a", "b")];
 	private readonly TagList tags = [new(TelemetryTagKey.CloudRole, "role")];
 
@@ -37,7 +37,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var operationId = Guid.NewGuid().ToString("N");
-		var operation = new TelemetryOperation
+		var operation = new OperationContext
 		{
 			Id = operationId
 		};
@@ -96,7 +96,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var operationId = Guid.NewGuid().ToString("N");
-		var operation = new TelemetryOperation
+		var operation = new OperationContext
 		{
 			Id = operationId
 		};

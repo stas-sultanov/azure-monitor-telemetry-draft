@@ -1,5 +1,5 @@
 // Created by Stas Sultanov.
-// Copyright � Stas Sultanov.
+// Copyright © Stas Sultanov.
 
 namespace Azure.Monitor.Telemetry.UnitTests;
 
@@ -19,7 +19,7 @@ public sealed class ExtensionsTests
 	public void Method_TrackDependency()
 	{
 		// arrange
-		var operation = new TelemetryOperation { Id = new Guid().ToString("N"), Name = "Test" };
+		var operation = new OperationContext { Id = new Guid().ToString("N"), Name = "Test" };
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
 		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
 		{
@@ -72,7 +72,7 @@ public sealed class ExtensionsTests
 		// arrange
 		var id = "test-id";
 		var measurements = new[] { new KeyValuePair<String, Double>("Number", 0) };
-		var operation = new TelemetryOperation { Id = new Guid().ToString("N"), Name = "Test" };
+		var operation = new OperationContext { Id = new Guid().ToString("N"), Name = "Test" };
 		var publishResult = new HttpTelemetryPublishResult
 		(
 			10,
@@ -110,7 +110,7 @@ public sealed class ExtensionsTests
 		// arrange
 		var id = "test-id";
 		var measurements = new List<KeyValuePair<String, Double>> { new("Number", 0) };
-		var operation = new TelemetryOperation { Id = new Guid().ToString("N"), Name = "Test" };
+		var operation = new OperationContext { Id = new Guid().ToString("N"), Name = "Test" };
 		var publishResult = new HttpTelemetryPublishResult
 		(
 			10,

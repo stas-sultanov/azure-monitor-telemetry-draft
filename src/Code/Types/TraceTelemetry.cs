@@ -26,7 +26,7 @@ public sealed class TraceTelemetry
 	public String Message { get; } = message;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }

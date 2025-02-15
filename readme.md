@@ -15,11 +15,10 @@ Standard Application Insights library has the following disadvantages.
 
 ```mermaid
 ---
-
+title: Telemetry
 config:
     class:
         hideEmptyMembersBox: true
-title: Telemetry
 ---
 classDiagram
     direction TB

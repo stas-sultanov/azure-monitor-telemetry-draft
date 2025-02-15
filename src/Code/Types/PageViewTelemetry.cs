@@ -45,7 +45,7 @@ public sealed class PageViewTelemetry
 	public String Name { get; } = name;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }

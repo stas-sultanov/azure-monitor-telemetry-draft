@@ -496,7 +496,7 @@ public static class JsonTelemetrySerializer
 	private static void WriteTags
 	(
 		StreamWriter writer,
-		TelemetryOperation telemetryOperation,
+		OperationContext telemetryOperation,
 		TagList telemetryTags,
 		TagList trackerTags,
 		TagList publisherTags
