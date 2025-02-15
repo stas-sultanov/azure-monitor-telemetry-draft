@@ -462,7 +462,7 @@ public static class JsonTelemetrySerializer
 
 		streamWriter.Write(requestTelemetry.Success ? "true" : "false");
 
-		WriteValueIfValid(streamWriter, requestTelemetry.Url, ",\"url\":\"", "\"");
+		WriteValue(streamWriter, requestTelemetry.Url.ToString(), ",\"url\":\"", "\"");
 	}
 
 	private static void WriteDataTrace(StreamWriter streamWriter, Telemetry telemetry)
@@ -530,7 +530,7 @@ public static class JsonTelemetrySerializer
 	private static void WriteListIfValid
 	(
 		StreamWriter streamWriter,
-		IReadOnlyList<KeyValuePair<String, Double>> list,
+		MeasurementList list,
 		String pre,
 		String post
 	)
