@@ -1,3 +1,5 @@
+# The workflow to compile main project and pack it as NuGet package.
+
 name: Pack
 
 on:
@@ -21,8 +23,6 @@ env:
   OUT_DIRECTORY: .\out
   # Verbosity level
   VERBOSITY: quiet
-  # Version
-  VERSION: "${{ github.event.inputs.versionMajor }}.${{ github.event.inputs.versionMinor }}.0"
 
 jobs:
   Run:
@@ -39,7 +39,7 @@ jobs:
         --configuration ${{ env.BUILD_CONFIGURATION }}
         --output ${{ env.OUT_DIRECTORY }}
         --verbosity ${{ env.VERBOSITY }}
-        -p:PackageVersion=${{ env.VERSION }}
+        -p:PackageVersion="${{ inputs.versionMajor }}.${{ inputs.versionMinor }}.0"
         -p:PackageProjectUrl=${{ github.repositoryUrl }}
         -p:RepositoryBranch=${{ github.ref_name }}
         -p:RepositoryCommit=${{ github.sha }}

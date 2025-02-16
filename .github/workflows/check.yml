@@ -1,4 +1,4 @@
-# The workflow aims to check if source code meets the following criteria:
+# The workflow to check if source code meets the following criteria:
 # - compiles successfully for all target frameworks
 # - unit tests runs successfully
 # - code is compliant with codeQL rules
@@ -25,7 +25,7 @@ env:
   # Path to the test results directory relative to the root of the project.
   TESTS_RESULTS_DIRECTORY: .\testsResults
   # Verbosity level
-  VERBOSITY: minimal
+  VERBOSITY: quiet
 
 jobs:
   Run:
