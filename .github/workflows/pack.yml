@@ -22,7 +22,7 @@ env:
   # Verbosity level
   VERBOSITY: quiet
   # Version
-  VERSION: '${{ github.event.inputs.versionMajor }}.${{ github.event.inputs.versionMinor }}.0'
+  VERSION: "${{ github.event.inputs.versionMajor }}.${{ github.event.inputs.versionMinor }}.0"
 
 jobs:
   Run:
@@ -40,6 +40,10 @@ jobs:
         --output ${{ env.OUT_DIRECTORY }}
         --verbosity ${{ env.VERBOSITY }}
         -p:PackageVersion=${{ env.VERSION }}
+        -p:PackageProjectUrl=${{ github.repositoryUrl }}
+        -p:RepositoryBranch=${{ github.ref_name }}
+        -p:RepositoryCommit=${{ github.sha }}
+        -p:RepositoryUrl=${{ github.repositoryUrl }}
 
     - name: Upload Package
       uses: actions/upload-artifact@v4
