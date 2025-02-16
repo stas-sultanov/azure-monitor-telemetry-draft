@@ -39,7 +39,7 @@ public sealed class EventTelemetry
 	public String Name { get; } = name;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; } = null;
+	public OperationContext Operation { get; init; } = null;
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; } = null;

@@ -47,7 +47,7 @@ public sealed class RequestTelemetry
 	public String Name { get; init; }
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }

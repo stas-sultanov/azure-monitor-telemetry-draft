@@ -26,7 +26,7 @@ public sealed class TraceTelemetry
 	public String Message { get; } = message;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }
@@ -38,8 +38,6 @@ public sealed class TraceTelemetry
 
 	/// <inheritdoc/>
 	public TagList Tags { get; init; }
-
-	/// <summary>
 
 	/// <summary>
 	/// The UTC timestamp when the trace has occurred.

@@ -34,7 +34,7 @@ public sealed class MetricTelemetry
 	public String Namespace { get; } = @namespace;
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }

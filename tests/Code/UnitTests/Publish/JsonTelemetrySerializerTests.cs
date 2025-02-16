@@ -21,7 +21,7 @@ public class JsonTelemetrySerializerTests
 
 	private sealed class UnknownTelemetry(DateTime time) : Telemetry
 	{
-		public TelemetryOperation Operation { get; set; } = null;
+		public OperationContext Operation { get; set; } = null;
 		public PropertyList Properties { get; set; } = null;
 		public TagList Tags { get; set; } = null;
 		public DateTime Time { get; init; } = time;
@@ -61,7 +61,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -95,7 +95,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -133,7 +133,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -157,7 +157,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -189,7 +189,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -223,7 +223,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -249,7 +249,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -279,7 +279,7 @@ public class JsonTelemetrySerializerTests
 		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
 
 		// assert
-		var expectedTags = trackerTags.Union(publisherTags).Union(telemetry.Tags).ToArray();
+		var expectedTags = GetTags(telemetry, trackerTags, publisherTags);
 
 		var jsonElement = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, expectedTags, expectedType);
 
@@ -290,6 +290,34 @@ public class JsonTelemetrySerializerTests
 		options.Converters.Add(converter);
 
 		DeserializeAndAssert(jsonElement, @"severityLevel", telemetry.SeverityLevel, options);
+	}
+
+	[TestMethod]
+	public void Method_Serialize_ShouldNotSerializeInvalidTags()
+	{
+		// arrange
+		var expectedName = @"AppPageViews";
+		var expectedType = @"PageViewData";
+
+		var telemetry = new PageViewTelemetry(DateTime.UtcNow, "id", "name");
+
+		TagList trackerTags =
+		[
+			new KeyValuePair<String, String>(null, "value"),
+			new KeyValuePair<String, String>("", "value")
+		];
+
+		TagList publisherTags =
+		[
+			new KeyValuePair<String, String>("key0", null),
+			new KeyValuePair<String, String>("key1", "")
+		];
+
+		// act
+		var rootElement = SerializeAndDeserialize(instrumentationKey, telemetry, trackerTags, publisherTags);
+
+		// assert
+		_ = DeserializeAndAssertBase(rootElement, expectedName, telemetry.Time, instrumentationKey, [], expectedType);
 	}
 
 	[TestMethod]
@@ -347,7 +375,7 @@ public class JsonTelemetrySerializerTests
 		String expectedName,
 		DateTime expectedTime,
 		String expectedInstrumentationKey,
-		TagList expectedTags,
+		KeyValuePair<String, String>[] expectedTags,
 		String expectedBaseType
 	)
 	{
@@ -358,6 +386,8 @@ public class JsonTelemetrySerializerTests
 		DeserializeAndAssert(jsonElement, "iKey", expectedInstrumentationKey);
 
 		var actualTags = jsonElement.GetProperty(@"tags").Deserialize<Dictionary<String, String>>();
+
+		Assert.AreEqual(expectedTags.Length, actualTags.Count, "Tags count");
 
 		foreach (var expectedTag in expectedTags)
 		{
@@ -376,6 +406,42 @@ public class JsonTelemetrySerializerTests
 		var dataElement = childElement.GetProperty(@"baseData");
 
 		return dataElement;
+	}
+
+	private static KeyValuePair<String, String>[] GetTags(Telemetry telemetry, TagList trackerTags, TagList publisherTags)
+	{
+		var tags = new List<KeyValuePair<String, String>>();
+
+		if (telemetry.Operation != null)
+		{
+			if (!String.IsNullOrWhiteSpace(telemetry.Operation.Id))
+			{
+				tags.Add(new KeyValuePair<String, String>(TelemetryTagKey.OperationId, telemetry.Operation.Id));
+			}
+
+			if (!String.IsNullOrWhiteSpace(telemetry.Operation.Name))
+			{
+				tags.Add(new KeyValuePair<String, String>(TelemetryTagKey.OperationName, telemetry.Operation.Name));
+			}
+
+			if (!String.IsNullOrWhiteSpace(telemetry.Operation.ParentId))
+			{
+				tags.Add(new KeyValuePair<String, String>(TelemetryTagKey.OperationParentId, telemetry.Operation.ParentId));
+			}
+
+			if (!String.IsNullOrWhiteSpace(telemetry.Operation.SyntheticSource))
+			{
+				tags.Add(new KeyValuePair<String, String>(TelemetryTagKey.OperationSyntheticSource, telemetry.Operation.SyntheticSource));
+			}
+		}
+
+		tags.AddRange(trackerTags);
+
+		tags.AddRange(publisherTags);
+
+		var result = tags.ToArray();
+
+		return result;
 	}
 
 	private static void DeserializeAndAssert<ElementType>

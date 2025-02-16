@@ -9,7 +9,7 @@ namespace Azure.Monitor.Telemetry;
 /// <remarks>
 /// This type is used to track and correlate telemetry data across different operations and their relationships.
 /// </remarks>
-public sealed record TelemetryOperation
+public sealed record OperationContext
 {
 	#region Properties
 

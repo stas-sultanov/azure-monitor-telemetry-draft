@@ -21,7 +21,7 @@ public static class JsonTelemetrySerializer
 	private const String Name_Dependency = @"AppDependencies";
 	private const String Name_Event = @"AppEvents";
 	private const String Name_Exception = @"AppExceptions";
-	private const String Name_Mertic = @"AppMetrics";
+	private const String Name_Metric = @"AppMetrics";
 	private const String Name_PageView = @"AppPageViews";
 	private const String Name_Request = @"AppRequests";
 	private const String Name_Trace = @"AppTraces";
@@ -101,7 +101,7 @@ public static class JsonTelemetrySerializer
 				writeProperties = true;
 				break;
 			case MetricTelemetry:
-				name = Name_Mertic;
+				name = Name_Metric;
 				baseType = Type_Metric;
 				writeData = WriteDataMetric;
 				writeProperties = false;
@@ -462,7 +462,7 @@ public static class JsonTelemetrySerializer
 
 		streamWriter.Write(requestTelemetry.Success ? "true" : "false");
 
-		WriteValueIfValid(streamWriter, requestTelemetry.Url, ",\"url\":\"", "\"");
+		WriteValue(streamWriter, requestTelemetry.Url.ToString(), ",\"url\":\"", "\"");
 	}
 
 	private static void WriteDataTrace(StreamWriter streamWriter, Telemetry telemetry)
@@ -496,7 +496,7 @@ public static class JsonTelemetrySerializer
 	private static void WriteTags
 	(
 		StreamWriter writer,
-		TelemetryOperation telemetryOperation,
+		OperationContext telemetryOperation,
 		TagList telemetryTags,
 		TagList trackerTags,
 		TagList publisherTags
@@ -530,7 +530,7 @@ public static class JsonTelemetrySerializer
 	private static void WriteListIfValid
 	(
 		StreamWriter streamWriter,
-		IReadOnlyList<KeyValuePair<String, Double>> list,
+		MeasurementList list,
 		String pre,
 		String post
 	)

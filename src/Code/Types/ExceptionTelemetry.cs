@@ -35,7 +35,7 @@ public sealed class ExceptionTelemetry
 	public MeasurementList Measurements { get; init; }
 
 	/// <inheritdoc/>
-	public TelemetryOperation Operation { get; init; }
+	public OperationContext Operation { get; init; }
 
 	/// <inheritdoc/>
 	public PropertyList Properties { get; init; }
