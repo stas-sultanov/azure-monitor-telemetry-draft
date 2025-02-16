@@ -32,14 +32,14 @@
 				<Company>Stas Sultanov</Company>
 				<Copyright>© Stas Sultanov</Copyright>
 				<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-				<Description>This client library enables tracking Application Telemetry and publishing it to Azure Monitor.</Description>
+				<Description>This client library enables tracking and publishing telemetry to Azure Monitor service.</Description>
 				<EmbedUntrackedSources>true</EmbedUntrackedSources>
 				<IncludeSymbols>true</IncludeSymbols>
 				<PackageIcon>icon.png</PackageIcon>
 				<PackageLicenseFile>license</PackageLicenseFile>
 				<PackageReadmeFile>readme.md</PackageReadmeFile>
 				<PackageTags>Azure;Azure Monitor;Azure Monitor Telemetry;Telemetry;ApplicationInsights;</PackageTags>
-				<Product>Azure TinyClient.NET</Product>
+				<Product>AzureTinyClient.NET</Product>
 				<RepositoryType>git</RepositoryType>
 				<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 				<Title>Azure Monitor Telemetry</Title>
