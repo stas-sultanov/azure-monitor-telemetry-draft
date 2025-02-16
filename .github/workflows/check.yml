@@ -1,3 +1,8 @@
+# The workflow aims to check if source code meets the following criteria:
+# - compiles successfully for all target frameworks
+# - unit tests runs successfully
+# - code is compliant with codeQL rules
+
 name: Check
 
 on:
@@ -14,16 +19,17 @@ env:
   # Language to analyze
   LANGUAGE: csharp
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: ./Azure.Monitor.Telemetry.sln
+  SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
   # Path to the coverage report directory relative to the root of the project.
-  TESTS_COVERAGE_DIRECTORY: ./testsCoverage
+  TESTS_COVERAGE_DIRECTORY: .\testsCoverage
   # Path to the test results directory relative to the root of the project.
-  TESTS_RESULTS_DIRECTORY: ./testsResults
+  TESTS_RESULTS_DIRECTORY: .\testsResults
   # Verbosity level
   VERBOSITY: minimal
 
 jobs:
   Run:
+    # one of target frameworks is net462
     runs-on: windows-latest
 
     permissions:
@@ -33,7 +39,7 @@ jobs:
       security-events: write
 
     steps:
-    - name: Checkout Sources
+    - name: Checkout
       uses: actions/checkout@v4
 
     - name: Restore
@@ -49,7 +55,6 @@ jobs:
         --verbosity ${{ env.VERBOSITY }}
 
     - name: Test
-      id: UnitTests
       run: >-
         dotnet test ${{ env.SOLUTION_FILE }}
         --collect:"XPlat Code Coverage"
@@ -66,12 +71,12 @@ jobs:
       if: always()
       with:
         files: |
-          ${{ env.TESTS_RESULTS_DIRECTORY }}/**/*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
 
     - name: Convert Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}/*/coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY }} -reporttypes:'MarkdownSummaryGithub'
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY }} -reporttypes:'MarkdownSummaryGithub'
 
     - name: Publish Coverage Report
       uses: LouisBrunner/checks-action@v1.2.0
@@ -80,7 +85,7 @@ jobs:
         name: Test Coverage
         conclusion: ${{ job.status }}
         output: "{\"summary\":\"Coverage\"}"
-        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY }}/SummaryGithub.md
+        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY }}\SummaryGithub.md
 
     # Initializes the CodeQL tools for scanning
     - name: Initialize CodeQL
