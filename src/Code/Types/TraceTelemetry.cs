@@ -40,8 +40,6 @@ public sealed class TraceTelemetry
 	public TagList Tags { get; init; }
 
 	/// <summary>
-
-	/// <summary>
 	/// The UTC timestamp when the trace has occurred.
 	/// </summary>
 	public DateTime Time { get; } = time;

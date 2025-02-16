@@ -3,8 +3,14 @@
 
 namespace Azure.Monitor.Telemetry;
 
+/// <summary>
+/// Represents the aggregation of metric values within a sample set.
+/// </summary>
 public sealed class MetricValueAggregation
 {
+	/// <summary>
+	/// The number of values in the sample set
+	/// </summary>
 	public Int32 Count { get; set; }
 
 	/// <summary>

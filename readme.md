@@ -2,6 +2,16 @@
 
 A tiny and very effective library to work via components aka Application Insights.
 
+## Getting Started
+
+### Installation
+
+To install the Azure Monitor Telemetry library, use the following command:
+
+```sh
+dotnet add package Stas.Azure.Monitor.Telemetry
+```
+
 # Why Consider This Library
 Standard Application Insights library has the following disadvantages. 
 
@@ -12,6 +22,8 @@ Standard Application Insights library has the following disadvantages.
 4.  Slow.
 
 # Class Diagram
+
+The diagram is interactive, by clicking on the class you will be navigated to its sources.
 
 ```mermaid
 ---
