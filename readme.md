@@ -1,85 +1,59 @@
 # Azure Monitor Telemetry 
 
-A tiny and very effective library to work via components aka Application Insights.
+A lightweight, high-performance library for tracking and publishing telemetry.
+
+The library is developed by Stas Sultanov. If you find it useful, please consider [supporting the author](#support-the-author).
+
+## Why This Library?
+
+A natural question for any qualified engineer is: why use this library when Microsoft provides an official one?
+
+Well, there are several compelling reasons why the author chose to invest time and effort into creating this library:
+
+- As for Jan 2025 Microsoft recommends stop using its official package and recommending OpenTelemetry with an exporter instead.
+- Neither official Microsoft package nor OpenTelemetry with Exporter are not designed to work as fast as possible and have the smallest memory footprint possible.
+- Lack of .NET 4.6.2 support. While of cause you can use this libraries via [.net standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0) – this requires adding netstehuth.dll to the project which increase time to start and memory consumption.
+- Heavy footprint – The official SDK is ~360KB, whereas this library is only ~40KB, making it significantly more lightweight.
+- Limited flexibility – It does not work well in certain cases, such as developing plugins for Power Platform.
+- Complexity – The official SDK is not simple, clear, or easy to understand.
+
+Considering these factors, the author built this library from scratch with a focus on performance, low memory usage, and support of .NET versions which still in LTS, making it an ideal choice for scenarios where efficiency is critical.
 
 ## Getting Started
 
-### Installation
-
-To install the Azure Monitor Telemetry library, use the following command:
+To install the library, use the following command:
 
 ```sh
 dotnet add package Stas.Azure.Monitor.Telemetry
 ```
 
-# Why Consider This Library
-Standard Application Insights library has the following disadvantages. 
+For information how to use the library please read [this document](/src/readme.md).
 
+## Supported telemetry types
 
-1.  Is considered as deprecated.
-2.  Is not designed to work in certain scenarios like Power Platform plugins.
-3.  Has problems with authentication.
-4.  Slow.
+The library supports all types of telemetry which are currently supported by the Azure Monitor.
 
-# Class Diagram
+All types, that represent different types of telemetry, implements the [Telemetry](/src/Code/Telemetry.cs) interface.
 
-The diagram is interactive, by clicking on the class you will be navigated to its sources.
+| Type                                                              | Represents
+| :---------------------------------------------------------------- | :-
+| [AvailabilityTelemetry](/src/Code/Types/AvailabilityTelemetry.cs) | An availability test.
+| [DependencyTelemetry](/src/Code/Types/DependencyTelemetry.cs)     | A dependency call in an application.
+| [EventTelemetry](/src/Code/Types/EventTelemetry.cs)               | An event that occurred in an application.
+| [ExceptionTelemetry](/src/Code/Types/ExceptionTelemetry.cs)       | An exception that occurred in an application.
+| [MetricTelemetry](/src/Code/Types/MetricTelemetry.cs)             | An aggregated metric data.
+| [PageViewTelemetry](/src/Code/Types/PageViewTelemetry.cs)         | A page view.
+| [RequestTelemetry](/src/Code/Types/RequestTelemetry.cs)           | An external request to an application.
+| [TraceTelemetry](/src/Code/Types/RequestTelemetry.cs)             | Printf-style trace statement.
 
-```mermaid
----
-config:
-    class:
-        hideEmptyMembersBox: true
-title: Telemetry
----
-classDiagram
-    direction TB
+## Support the Author
 
-    class Telemetry {
-        <<Interface>>
-    }
+Donations help the author know that the time and effort spent on this library is valued.
 
-    class AvailabilityTelemetry {
-    }
+The author resides in a country where there has been military action since February 2022, making it extremely difficult to find stable employment. Donation provides significant support during these challenging times.
 
-    class DependencyTelemetry {
-    }
+If you’d like to make a donation, please use the button below.
 
-    class EventTelemetry {
-    }
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K2DPD6J3DJ2FN)
 
-    class ExceptionTelemetry {
-    }
-
-    class MetricTelemetry {
-    }
-
-    class PageViewTelemetry {
-    }
-
-    class RequestTelemetry {
-    }
-
-    class TraceTelemetry {
-    }
-
-    AvailabilityTelemetry ..|> Telemetry
-    DependencyTelemetry ..|> Telemetry
-    EventTelemetry ..|> Telemetry
-    ExceptionTelemetry ..|> Telemetry
-    MetricTelemetry ..|> Telemetry
-    PageViewTelemetry ..|> Telemetry
-    RequestTelemetry ..|> Telemetry
-    TraceTelemetry ..|> Telemetry
-
-    click Telemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Telemetry.cs" "Telemetry"
-    click AvailabilityTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/AvailabilityTelemetry.cs" "AvailabilityTelemetry"
-    click DependencyTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/DependencyTelemetry.cs" "DependencyTelemetry"
-    click EventTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/EventTelemetry.cs" "EventTelemetry"
-    click ExceptionTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/ExceptionTelemetry.cs" "ExceptionTelemetry"
-    click MetricTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/MetricTelemetry.cs" "MetricTelemetry"
-    click PageViewTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/PageViewTelemetry.cs" "PageViewTelemetry"
-    click RequestTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/RequestTelemetry.cs" "RequestTelemetry"
-    click TraceTelemetry href "https://github.com/stas-sultanov/azure-monitor-telemetry/blob/main/src/Code/Types/TraceTelemetry.cs" "TraceTelemetry"
-
-```
+Thank you for your support!

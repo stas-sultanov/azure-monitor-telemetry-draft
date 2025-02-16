@@ -1,8 +1,6 @@
 # Azure Monitor Telemetry
 
-A .NET library for collecting telemetry data and publishing it to Azure Monitor service.
-
-This library helps you monitor the performance and usage of your solution.
+A lightweight, high-performance library for tracking and publishing telemetry.
 
 ## Getting Started
 

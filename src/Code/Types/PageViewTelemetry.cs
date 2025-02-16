@@ -4,9 +4,11 @@
 namespace Azure.Monitor.Telemetry;
 
 /// <summary>
-/// Represents telemetry of a Page view.
-/// The Page is a logical unit that is defined by the developer to be an application tab or a screen.
+/// Represents telemetry of a page view.
 /// </summary>
+/// <remarks>
+/// The page is a logical unit that is defined by the developer to be an application tab or a screen.
+/// </remarks>
 /// <param name="time">The UTC timestamp when the operation was initiated.</param>
 /// <param name="id">The unique identifier.</param>
 /// <param name="name">The name of the page.</param>

@@ -4,7 +4,7 @@
 namespace Azure.Monitor.Telemetry;
 
 /// <summary>
-/// Represents telemetry of aggregated metric data.
+/// Represents telemetry of an aggregated metric data.
 /// </summary>
 /// <param name="time">The UTC timestamp when the trace has occurred.</param>
 /// <param name="namespace">The namespace.</param>

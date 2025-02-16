@@ -30,16 +30,17 @@
 			<PropertyGroup>
 				<Authors>Stas Sultanov</Authors>
 				<Company>Stas Sultanov</Company>
-				<Copyright>© Stas Sultanov</Copyright>
+				<Copyright>Copyright © Stas Sultanov</Copyright>
 				<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-				<Description>This client library enables tracking Application Telemetry and publishing it to Azure Monitor.</Description>
+				<Description>A lightweight, high-performance library for tracking and publishing telemetry.</Description>
 				<EmbedUntrackedSources>true</EmbedUntrackedSources>
 				<IncludeSymbols>true</IncludeSymbols>
 				<PackageIcon>icon.png</PackageIcon>
-				<PackageLicenseFile>license</PackageLicenseFile>
+				<PackageLicenseFile>license.md</PackageLicenseFile>
 				<PackageReadmeFile>readme.md</PackageReadmeFile>
+				<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 				<PackageTags>Azure;Azure Monitor;Azure Monitor Telemetry;Telemetry;ApplicationInsights;</PackageTags>
-				<Product>Azure TinyClient.NET</Product>
+				<Product>AzureTinyClient.NET</Product>
 				<RepositoryType>git</RepositoryType>
 				<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 				<Title>Azure Monitor Telemetry</Title>
@@ -48,7 +49,7 @@
 			<ItemGroup>
 				<None Include="icon.png" Pack="True" PackagePath="\" />
 				<None Include="readme.md" Pack="True" PackagePath="\" />
-				<None Include="..\license" Pack="True" PackagePath="\" />
+				<None Include="..\license.md" Pack="True" PackagePath="\" />
 			</ItemGroup>
 			<ItemGroup>
 				<PackageReference Include="Microsoft.SourceLink.GitHub" Version="*" PrivateAssets="All" />
