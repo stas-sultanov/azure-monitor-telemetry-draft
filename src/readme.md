@@ -1,8 +1,6 @@
 # Azure Monitor Telemetry
 
-A lightweight, high-performance library for tracking and publishing telemetry to Azure Monitor.
-
-This library helps you monitor the performance and usage of your solution.
+A lightweight, high-performance library for tracking and publishing telemetry.
 
 ## Getting Started
 

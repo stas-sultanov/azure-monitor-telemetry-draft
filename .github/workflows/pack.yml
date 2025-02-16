@@ -14,7 +14,7 @@ on:
         required: true
         type: number
 
-run-name: ${{ format('Pack {0}.{1}.{2}', inputs.versionMajor, inputs.versionMinor, github.run_number) }}
+run-name: ${{ format('Pack {0}.{1}.{2}{3}', inputs.versionMajor, inputs.versionMinor, github.run_number, github.ref_name == 'name' && '-pre' || '') }}
 
 jobs:
   run:
@@ -33,7 +33,8 @@ jobs:
       # Package output directory
       PACKAGE_OUTPUT_DIRECTORY: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('{0}.{1}.{2}', inputs.versionMajor, inputs.versionMinor, github.run_number) }}
+      PACKAGE_VERSION: ${{ format('{0}.{1}.{2}{3}', inputs.versionMajor, inputs.versionMinor, github.run_number, github.ref_name == 'name' && '-pre' || '') }}
+
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
