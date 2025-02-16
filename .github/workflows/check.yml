@@ -13,22 +13,10 @@ on:
       - "src/**"
       - "test/**"
 
-env:
-  # Configuration type to build.
-  BUILD_CONFIGURATION: Release
-  # Language to analyze
-  LANGUAGE: csharp
-  # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
-  # Path to the coverage report directory relative to the root of the project.
-  TESTS_COVERAGE_DIRECTORY: .\testsCoverage
-  # Path to the test results directory relative to the root of the project.
-  TESTS_RESULTS_DIRECTORY: .\testsResults
-  # Verbosity level
-  VERBOSITY: quiet
-
 jobs:
-  Run:
+  run:
+    name: Run
+
     # one of target frameworks is net462
     runs-on: windows-latest
 
@@ -37,6 +25,20 @@ jobs:
       pull-requests: write
       # Required for CodeQL
       security-events: write
+
+    env:
+      # Configuration type to build.
+      BUILD_CONFIGURATION: Release
+      # Language to analyze
+      LANGUAGE: csharp
+      # Path to the solution file relative to the root of the project.
+      SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
+      # Path to the coverage report directory relative to the root of the project.
+      TESTS_COVERAGE_DIRECTORY: .\testsCoverage
+      # Path to the test results directory relative to the root of the project.
+      TESTS_RESULTS_DIRECTORY: .\testsResults
+      # Verbosity level
+      VERBOSITY: quiet
 
     steps:
     - name: Checkout
