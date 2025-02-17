@@ -21,7 +21,9 @@ jobs:
     name: Run
     
     permissions:
-      # Basic permission for workflow to get sources
+      # Required for Attestation
+      attestations: write
+      # Required for Workflow to checkout the repo
       contents: read
 
     # one of target frameworks is net462
@@ -38,7 +40,6 @@ jobs:
       PACKAGE_OUTPUT_DIRECTORY: .\out
       # Package Version
       PACKAGE_VERSION: ${{ format('{0}.{1}.{2}{3}', inputs.versionMajor, inputs.versionMinor, github.run_number, github.ref_name == 'name' && '-pre' || '') }}
-
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
@@ -61,14 +62,14 @@ jobs:
         -p:RepositoryCommit=${{ github.sha }}
         -p:RepositoryUrl=${{ env.REPO_URL }}
 
+    - name: Attest Build Provenance
+      uses: actions/attest-build-provenance@2
+      with:
+        subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg"
+        
     - name: Upload Package
       id: upload-artifacts
       uses: actions/upload-artifact@v4
       with:
         name: packages.zip
         path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
-    - uses: actions/attest-build-provenance@v2
-      with:
-        subject-name: packages.zip
-        subject-digest: sha256:${{ steps.upload-artifacts.outputs.artifact-digest }}
