@@ -55,7 +55,7 @@ jobs:
 
     - name: Get Sign Certificate
       run: |
-        [System.IO.File]::WriteAllBytes(".\src\${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}", [System.Convert]::FromBase64String($ASSEMBLY_SIGNING_CERTIFICATE))
+        [System.IO.File]::WriteAllBytes(".\src\${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}", [System.Convert]::FromBase64String(${{env.ASSEMBLY_SIGNING_CERTIFICATE}}))
         dir
         dir src
       env:
