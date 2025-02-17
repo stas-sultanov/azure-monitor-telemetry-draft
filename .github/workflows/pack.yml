@@ -67,11 +67,11 @@ jobs:
     - name: Attest Build Provenance
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg"
+        subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.*pkg"
         
     - name: Upload Package
       id: upload-artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: packages.zip
+        name: packages
         path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
