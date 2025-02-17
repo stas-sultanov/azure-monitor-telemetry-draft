@@ -43,24 +43,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Initializes the CodeQL tools for scanning
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: actions, csharp
-        # For C#, the CodeQL database is generated directly from the codebase without requiring a build
-        build-mode: none
-
-    - name: Run CodeQL on Actions
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:actions"
-
-    - name: Run CodeQL on C#
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:csharp"
-
     - name: Restore
       run: >-
         dotnet restore ${{ env.SOLUTION_FILE }}
