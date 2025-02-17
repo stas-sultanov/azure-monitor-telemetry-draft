@@ -55,7 +55,7 @@ jobs:
 
     - name: Get Sign Certificate
       run: |
-        echo -n $ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 | base64 -d ./src/${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
+        echo -n $ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 | base64 -d >> ./src/${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
       shell: bash
       env:
         ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64: ${{ secrets.ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 }}
