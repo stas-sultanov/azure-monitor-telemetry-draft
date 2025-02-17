@@ -30,8 +30,6 @@ jobs:
     env:
       # Configuration type to build.
       BUILD_CONFIGURATION: Release
-      # Language to analyze
-      LANGUAGE: csharp
       # Path to the solution file relative to the root of the project.
       SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
       # Path to the coverage report directory relative to the root of the project.
@@ -49,15 +47,19 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ env.LANGUAGE }}
+        languages: actions, csharp
         # For C#, the CodeQL database is generated directly from the codebase without requiring a build
         build-mode: none
 
-    # Initializes the CodeQL tools for scanning
-    - name: Run CodeQL
+    - name: Run CodeQL on Actions
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:${{ env.LANGUAGE }}"
+        category: "/language:actions"
+
+    - name: Run CodeQL on C#
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:csharp"
 
     - name: Restore
       run: >-
