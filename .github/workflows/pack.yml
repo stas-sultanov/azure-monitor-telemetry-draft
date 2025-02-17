@@ -21,10 +21,12 @@ jobs:
     name: Run
     
     permissions:
-      # Required for Attestation
+      # Required by Attestation action to persist the attestation
       attestations: write
-      # Required for Workflow to checkout the repo
+      # Required to checkout the repo
       contents: read
+      # Required by Attestation action to mint the OIDC token necessary to request a Sigstore signing certificate
+      id-token: write
 
     # one of target frameworks is net462
     runs-on: windows-latest
