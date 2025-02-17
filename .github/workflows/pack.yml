@@ -19,6 +19,10 @@ run-name: ${{ format('Pack {0}.{1}.{2}{3}', inputs.versionMajor, inputs.versionM
 jobs:
   run:
     name: Run
+    
+    permissions:
+      # Basic permission for workflow to get sources
+      contents: read
 
     # one of target frameworks is net462
     runs-on: windows-latest
