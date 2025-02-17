@@ -17,15 +17,18 @@ jobs:
   run:
     name: Run
 
-    # one of target frameworks is net462
-    runs-on: windows-latest
-
     permissions:
+      # Required to checkout the repo
       contents: read
+      # Required to write test results
       checks: write
+      # Required to write test results
       pull-requests: write
       # Required for CodeQL
       security-events: write
+
+    # one of target frameworks is net462
+    runs-on: windows-latest
 
     env:
       # Configuration type to build.
