@@ -63,7 +63,7 @@ jobs:
         -p:RepositoryUrl=${{ env.REPO_URL }}
 
     - name: Attest Build Provenance
-      uses: actions/attest-build-provenance@2
+      uses: actions/attest-build-provenance@v2
       with:
         subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.nupkg"
         
