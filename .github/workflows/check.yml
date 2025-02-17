@@ -52,18 +52,13 @@ jobs:
         languages: ${{ env.LANGUAGE }}
         # For C#, the CodeQL database is generated directly from the codebase without requiring a build
         build-mode: none
-  
+
     # Initializes the CodeQL tools for scanning
     - name: Run CodeQL
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{ env.LANGUAGE }}"
 
-    - name: Clean
-      run: >-
-        dotnet clean ${{ env.SOLUTION_FILE }}
-        --verbosity ${{ env.VERBOSITY }}
-        
     - name: Restore
       run: >-
         dotnet restore ${{ env.SOLUTION_FILE }}
