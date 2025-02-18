@@ -78,12 +78,12 @@ jobs:
         name: packages
         path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
-    - name: Update variable VERSION
+    - name: Update VERSION
       run: |
         $versionAsArray = '${{ vars.VERSION }}'.Split('.');
         $versionPatch = [Int32]::Parse($versionAsArray[2]);
         $versionPatch++;
         $newVersion = [String]::Format('{0}.{1}.{2}', $versionAsArray[0], $versionAsArray[1], $versionPatch);
-        "VERSION=$newVersion" >> $env:GITHUB_ENV;
+        gh variable set VERSION --body $newVersion;
       shell: pwsh
       
