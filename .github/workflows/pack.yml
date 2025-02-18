@@ -4,13 +4,18 @@ name: Pack
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version in format X.Y.Z'
+        required: true
+        type: string
 
-run-name: ${{ format('Pack {0}{1}', vars.VERSION, github.ref_name != 'main' && '-pre' || '') }}
+run-name: ${{ format('Pack {0}{1}', inputs.version, github.ref_name != 'main' && '-pre' || '') }}
 
 jobs:
   run:
     name: Run
-    
+
     permissions:
       # Required by Attestation action to persist the attestation
       attestations: write
@@ -34,7 +39,7 @@ jobs:
       # Package output directory
       PACKAGE_OUTPUT_DIRECTORY: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('{0}{1}', vars.VERSION, github.ref_name != 'main' && '-pre' || '') }}
+      PACKAGE_VERSION: ${{ format('{0}{1}', inputs.version, github.ref_name != 'main' && '-pre' || '') }}
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
@@ -58,7 +63,7 @@ jobs:
         --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
         --verbosity ${{ env.VERBOSITY }}
         -p:AssemblyOriginatorKeyFile=${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
-        -p:AssemblyVersion=${{ vars.VERSION }}
+        -p:AssemblyVersion=${{ inputs.version }}
         -p:PackageId=${{ env.PACKAGE_ID }}
         -p:PackageProjectUrl=${{ env.REPO_URL }}
         -p:PackageVersion=${{ env.PACKAGE_VERSION }}
@@ -70,22 +75,10 @@ jobs:
       uses: actions/attest-build-provenance@v2
       with:
         subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.*pkg"
-        
+
     - name: Upload Package
       id: upload-artifacts
       uses: actions/upload-artifact@v4
       with:
         name: packages
         path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
-
-    - name: Update VERSION
-      run: |
-        $versionAsArray = '${{ vars.VERSION }}'.Split('.');
-        $versionPatch = [Int32]::Parse($versionAsArray[2]);
-        $versionPatch++;
-        $newVersion = [String]::Format('{0}.{1}.{2}', $versionAsArray[0], $versionAsArray[1], $versionPatch);
-        gh variable set VERSION --body $newVersion;
-      shell: pwsh
-      env:
-        GH_TOKEN: ${{ github.token }}
-      
