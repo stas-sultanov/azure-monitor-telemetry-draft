@@ -5,7 +5,7 @@ name: Pack
 on:
   workflow_dispatch:
 
-run-name: ${{ format('{0}{1}', vars.VERSION, github.ref_name != 'main' && '-pre' || '') }}
+run-name: ${{ format('Pack {0}{1}', vars.VERSION, github.ref_name != 'main' && '-pre' || '') }}
 
 jobs:
   run:
