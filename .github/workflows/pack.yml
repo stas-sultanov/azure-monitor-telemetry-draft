@@ -86,4 +86,6 @@ jobs:
         $newVersion = [String]::Format('{0}.{1}.{2}', $versionAsArray[0], $versionAsArray[1], $versionPatch);
         gh variable set VERSION --body $newVersion;
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
       
