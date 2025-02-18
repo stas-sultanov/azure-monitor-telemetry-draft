@@ -84,4 +84,6 @@ jobs:
         $versionPatch = [Int32]::Parse($versionAsArray[2]);
         $versionPatch++;
         $newVersion = [String]::Format('{0}.{1}.{2}', $versionAsArray[0], $versionAsArray[1], $versionPatch);
-        echo "VERSION=$newVersion" >> "$GITHUB_ENV"
+        "VERSION=$newVersion" >> $env:GITHUB_ENV;
+      shell: pwsh
+      
