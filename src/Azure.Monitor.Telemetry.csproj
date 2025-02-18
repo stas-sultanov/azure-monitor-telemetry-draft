@@ -44,7 +44,7 @@
 				<PackageReadmeFile>readme.md</PackageReadmeFile>
 				<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 				<PackageTags>Azure;Azure Monitor;Azure Monitor Telemetry;Telemetry;ApplicationInsights;</PackageTags>
-				<Product>AzureTinyClient.NET</Product>
+				<Product>Azure Light Client</Product>
 				<RepositoryType>git</RepositoryType>
 				<SignAssembly>True</SignAssembly>
 				<SymbolPackageFormat>snupkg</SymbolPackageFormat>
