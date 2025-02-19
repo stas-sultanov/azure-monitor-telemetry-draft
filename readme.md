@@ -21,19 +21,20 @@ For further instructions on how to use the library please read [this document](/
 
 ## Why This Library?
 
-Any qualified engineer will naturally ask: why use this library if Microsoft provides the official one(s)?
+Any qualified engineer will naturally ask: why use this library if Microsoft provides the official SDK(s)?
 
-Well, there are several compelling reasons why the author chose to invest time and effort into creating this library:
+Well, there are several compelling reasons why the author chose to invest life time and effort into creating this library:
 
-- No direct support of .NET Framework 4.6.2, which life-path ends on [12 Jan 2027](https://learn.microsoft.com/lifecycle/products/microsoft-net-framework).
-Of cause it is possible to use Microsoft SDKs in applications that targets .NET 4.6.2,
-but it works via [.net standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0),
+- No direct support of NET462.
+Life-path of NET462 ends on [12 Jan 2027][NETLifeCycle] and still is widely used for development, for instance for development of plugins for Microsoft [Power Platform](https://www.microsoft.com/power-platform).
+Of cause it is possible to use Microsoft SDKs in applications that targets NET462, but it works via [.net standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0),
 and this requires adding extra dlls that increase time to start and memory consumption.
-- Strange decisions in implementation - For instance take a look on the way Entra based authentication is handled. The implementation causes an issue, which is described by the author [here](https://github.com/microsoft/ApplicationInsights-dotnet/issues/2945).
-- Limited application – The way official sdk is implement, does not work for certain scenarios like developing plugins for Power Platform.
-- As for Jan 2025 Microsoft recommends stop using its official package and recommending OpenTelemetry Distro with an exporter instead.
+- [Microsoft Application Insights for .NET][AppInsightsDotNetGitHub] has very strange decisions in implementation.
+For instance take a look on the way how it handles Entra based authentication. The implementation causes an issue, which is described by the author [here][AppInsightsDotNetGitHubAuthIssue].
+- Limited application.
+The way official sdk is implement, does not work for certain scenarios like developing plugins for Power Platform.
+- As for Dec 2024 Microsoft recommends the [Azure Monitor OpenTelemetry Distro](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable?tabs=aspnetcore#enable-azure-monitor-opentelemetry-for-net-nodejs-python-and-java-applications) for new applications or customers to power [Azure Monitor Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
 - Neither official Microsoft package nor OpenTelemetry with Exporter are not designed to work as fast as possible and have the smallest memory footprint possible.
-- Heavy footprint – The official SDK is ~360KB, whereas this library is only ~40KB, making it significantly more lightweight.
 
 Considering these factors, the author built this library from scratch with a focus on performance, low memory usage, and support of .NET versions which still in LTS, making it an ideal choice for scenarios where efficiency is critical.
 
@@ -65,3 +66,8 @@ If you’d like to make a donation, please use the button below.
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K2DPD6J3DJ2FN)
 
 Thank you for your support!
+
+[AppInsightsDotNetGitHub]: https://github.com/microsoft/ApplicationInsights-dotnet
+[AppInsightsDotNetGitHubAuthIssue]: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2945
+[AzureInsightsComponentsResource]: https://learn.microsoft.com/azure/templates/microsoft.insights/components
+[NETLifeCycle]: https://learn.microsoft.com/lifecycle/products/microsoft-net-framework

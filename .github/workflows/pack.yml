@@ -76,7 +76,7 @@ jobs:
         -p:RepositoryCommit=${{ github.sha }}
         -p:RepositoryUrl=${{ env.REPO_URL }}
 
-    - name: Attest Build Provenance
+    - name: Attest Package Provenance
       if: ${{ !inputs.isPreRelease }}
       uses: actions/attest-build-provenance@v2
       with:
