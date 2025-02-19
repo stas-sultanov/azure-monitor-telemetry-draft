@@ -1,13 +1,12 @@
 # Azure Monitor Telemetry 
-https://github.com/stas-sultanov/azure-monitor-telemetry/actions/workflows/pack.yml/badge.svg
-
 [![CodeQL](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/github-code-scanning/codeql)
 [![Check](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/check.yml/badge.svg)](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/check.yml)
 [![Pack](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/pack.yml/badge.svg)](https://github.com/stas-sultanov/azure-monitor-telemetry-draft/actions/workflows/pack.yml)
 
 A lightweight, high-performance library for tracking and publishing telemetry to [Azure Monitor](https://docs.microsoft.com/azure/azure-monitor/overview) / [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview).
 
-The library is developed by Stas Sultanov.
+The library is developed by [Stas Sultanov](https://www.linkedin.com/in/stas-sultanov/).
+
 If you or the company you work find it useful, please consider [supporting the author](#support-the-author).
 
 ## Getting Started
@@ -22,7 +21,7 @@ For further instructions on how to use the library please read [this document](/
 
 ## Why This Library?
 
-A natural question for any qualified engineer is: why use this library when Microsoft provides an official one?
+Any qualified engineer will naturally ask: why use this library if Microsoft provides the official one(s)?
 
 Well, there are several compelling reasons why the author chose to invest time and effort into creating this library:
 
@@ -30,11 +29,11 @@ Well, there are several compelling reasons why the author chose to invest time a
 Of cause it is possible to use Microsoft SDKs in applications that targets .NET 4.6.2,
 but it works via [.net standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0),
 and this requires adding extra dlls that increase time to start and memory consumption.
-- Heavy footprint – The official SDK is ~360KB, whereas this library is only ~40KB, making it significantly more lightweight.
-- Limited application – It does not work well in certain cases, such as developing plugins for Power Platform.
-- Complexity – The official SDK is not simple, clear, or easy to understand.
+- Strange decisions in implementation - For instance take a look on the way Entra based authentication is handled. The implementation causes an issue, which is described by the author [here](https://github.com/microsoft/ApplicationInsights-dotnet/issues/2945).
+- Limited application – The way official sdk is implement, does not work for certain scenarios like developing plugins for Power Platform.
 - As for Jan 2025 Microsoft recommends stop using its official package and recommending OpenTelemetry Distro with an exporter instead.
 - Neither official Microsoft package nor OpenTelemetry with Exporter are not designed to work as fast as possible and have the smallest memory footprint possible.
+- Heavy footprint – The official SDK is ~360KB, whereas this library is only ~40KB, making it significantly more lightweight.
 
 Considering these factors, the author built this library from scratch with a focus on performance, low memory usage, and support of .NET versions which still in LTS, making it an ideal choice for scenarios where efficiency is critical.
 
