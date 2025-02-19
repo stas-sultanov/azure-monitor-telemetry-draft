@@ -5,9 +5,9 @@
 
 A lightweight, high-performance library for tracking and publishing telemetry to [Azure Monitor](https://docs.microsoft.com/azure/azure-monitor/overview) / [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview).
 
-The library is developed by [Stas Sultanov](https://www.linkedin.com/in/stas-sultanov/).
+Developed by [Stas Sultanov](https://www.linkedin.com/in/stas-sultanov/), this library is designed for efficiency, prioritizing speed and minimal memory usage.
 
-If you or the company you work find it useful, please consider [supporting the author](#support-the-author).
+If you or your company find it useful, please consider [supporting the author](#support-the-author).
 
 ## Getting Started
 
