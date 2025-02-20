@@ -5,6 +5,7 @@ namespace Azure.Monitor.Telemetry.Publish;
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 
 /// <summary>
 /// Provides telemetry publishing using HTTP protocol.
@@ -35,12 +36,14 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 	/// </summary>
 	public const String AuthorizationScope = "https://monitor.azure.com//.default";
 
+	private static readonly UTF8Encoding transmissionEncoding = new(false);
+
+	private static readonly MediaTypeHeaderValue contentTypeHeaderValue = MediaTypeHeaderValue.Parse(@"application/x-json-stream");
+
 	/// <summary>
 	/// The <see cref="AuthorizationScope"/> as array.
 	/// </summary>
 	public static String[] AuthorizationScopes { get; } = [AuthorizationScope];
-
-	private static MediaTypeHeaderValue ContentTypeHeaderValue { get; } = MediaTypeHeaderValue.Parse(@"application/x-json-stream");
 
 	#endregion
 
@@ -119,13 +122,15 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 		using var memoryStream = new MemoryStream();
 
 		// create stream writer based on memory stream as we want to write text in JSON format
-		using (var streamWriter = new StreamWriter(memoryStream, System.Text.Encoding.UTF8, 32768, true))
+		using (var streamWriter = new StreamWriter(memoryStream, transmissionEncoding, leaveOpen:true))
 		{
 			for (var index = 0; index < telemetryList.Count; index++)
 			{
 				var telemetryItem = telemetryList[index];
 
 				JsonTelemetrySerializer.Serialize(streamWriter, instrumentationKey, telemetryItem, trackerTags, tags);
+
+				streamWriter.Write(Environment.NewLine);
 			}
 		}
 
@@ -157,7 +162,7 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 
 		// set content type
 		// actually works without it, but we should be consistent
-		request.Content.Headers.ContentType = ContentTypeHeaderValue;
+		request.Content.Headers.ContentType = contentTypeHeaderValue;
 
 		// record time
 		var httpRequestTime = DateTime.UtcNow;
