@@ -3,6 +3,7 @@
 
 namespace Azure.Monitor.Telemetry.Publish;
 
+using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -22,21 +23,26 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 	#region Constants
 
 	/// <summary>
+	/// Name of the HTTP Authorization header.
+	/// </summary>
+	private const String AuthorizationHeaderName = @"Authorization";
+
+	/// <summary>
 	/// Prefix for the HTTP Authorization header value.
 	/// </summary>
 	private const String AuthorizationHeaderValuePrefix = @"Bearer ";
 
 	/// <summary>
-	/// Name of the HTTP Authorization header.
+	/// Value of the Content-Encoding header.
 	/// </summary>
-	private const String AuthorizationHeaderName = @"Authorization";
+	private const String ContentEncodingHeaderValue = "gzip";
 
 	/// <summary>
 	/// The authorization scope for the Azure Monitor.
 	/// </summary>
 	public const String AuthorizationScope = "https://monitor.azure.com//.default";
 
-	private static readonly UTF8Encoding transmissionEncoding = new(false);
+	private static readonly UTF8Encoding encoding = new(false);
 
 	private static readonly MediaTypeHeaderValue contentTypeHeaderValue = MediaTypeHeaderValue.Parse(@"application/x-json-stream");
 
@@ -121,16 +127,17 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 		// create memory stream to write request
 		using var memoryStream = new MemoryStream();
 
-		// create stream writer based on memory stream as we want to write text in JSON format
-		using (var streamWriter = new StreamWriter(memoryStream, transmissionEncoding, leaveOpen:true))
+		// we must keep open memory stream to read from it after write
+		using (var compressedStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
 		{
+			// create stream writer based on memory stream as we want to write text in JSON format
+			using var streamWriter = new StreamWriter(compressedStream, encoding);
+
 			for (var index = 0; index < telemetryList.Count; index++)
 			{
 				var telemetryItem = telemetryList[index];
 
 				JsonTelemetrySerializer.Serialize(streamWriter, instrumentationKey, telemetryItem, trackerTags, tags);
-
-				streamWriter.Write(Environment.NewLine);
 			}
 		}
 
@@ -160,9 +167,11 @@ public sealed class HttpTelemetryPublisher : TelemetryPublisher
 			_ = request.Headers.TryAddWithoutValidation(AuthorizationHeaderName, authorizationHeaderValue);
 		}
 
-		// set content type
-		// actually works without it, but we should be consistent
+		// set Content-Type. actually works without it, but we should be consistent
 		request.Content.Headers.ContentType = contentTypeHeaderValue;
+
+		// set Content-Encoding.
+		request.Content.Headers.ContentEncoding.Add(ContentEncodingHeaderValue);
 
 		// record time
 		var httpRequestTime = DateTime.UtcNow;

@@ -128,29 +128,23 @@ public static class JsonTelemetrySerializer
 				return;
 		}
 
-		streamWriter.Write("{\"name\":\"");
+		streamWriter.Write("{\"data\":{\"baseData\":{");
 
-		streamWriter.Write(name);
+		writeData(streamWriter, telemetry);
 
-		streamWriter.Write("\",\"time\":\"");
-
-		streamWriter.Write(telemetry.Time.ToString("O"));
-
-		streamWriter.Write("\",\"iKey\":\"");
-
-		streamWriter.Write(instrumentationKey);
-
-		streamWriter.Write("\",\"tags\":{");
-
-		WriteTags(streamWriter, telemetry.Operation, telemetry.Tags, trackerTags, publisherTags);
-
-		streamWriter.Write("},\"data\":{\"baseType\":\"");
+		streamWriter.Write(",\"ver\":2},\"baseType\":\"");
 
 		streamWriter.Write(baseType);
 
-		streamWriter.Write("\",\"baseData\":{\"ver\":2,");
+		streamWriter.Write("\"},\"iKey\":\"");
 
-		writeData(streamWriter, telemetry);
+		streamWriter.Write(instrumentationKey);
+
+		streamWriter.Write("\",\"name\":\"");
+
+		streamWriter.Write(name);
+
+		streamWriter.Write("\"");
 
 		// serialize properties
 		if (writeProperties && telemetry.Properties != null && telemetry.Properties.Count != 0)
@@ -162,7 +156,15 @@ public static class JsonTelemetrySerializer
 			streamWriter.Write("}");
 		}
 
-		streamWriter.Write("}}}");
+		streamWriter.Write(",\"tags\":{");
+
+		WriteTags(streamWriter, telemetry.Operation, telemetry.Tags, trackerTags, publisherTags);
+
+		streamWriter.Write("},\"time\":\"");
+
+		streamWriter.Write(telemetry.Time.ToString("O"));
+
+		streamWriter.Write("\"}");
 	}
 
 	#endregion
