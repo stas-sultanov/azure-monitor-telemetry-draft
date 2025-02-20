@@ -10,6 +10,10 @@
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Folder Include="Global\" />
+	</ItemGroup>
+
 	<Choose>
 		<When Condition=" '$(TargetFramework)' == 'net462' ">
 			<PropertyGroup>

@@ -95,7 +95,7 @@ public sealed class ExtensionsTests
 		var actualResult = telemetryPublisher.Buffer.First() as DependencyTelemetry;
 
 		// assert
-		Assert.AreEqual(2, actualResult.Measurements.Count);
+		Assert.AreEqual(2, actualResult.Measurements.Length);
 
 		Assert.AreEqual(measurements[0], actualResult.Measurements[0]);
 
@@ -109,7 +109,7 @@ public sealed class ExtensionsTests
 	{
 		// arrange
 		var id = "test-id";
-		var measurements = new List<KeyValuePair<String, Double>> { new("Number", 0) };
+		var measurements = new KeyValuePair<String, Double> [] { new("Number", 0) };
 		var operation = new OperationContext { Id = new Guid().ToString("N"), Name = "Test" };
 		var publishResult = new HttpTelemetryPublishResult
 		(
@@ -133,7 +133,7 @@ public sealed class ExtensionsTests
 		var actualResult = telemetryPublisher.Buffer.First() as DependencyTelemetry;
 
 		// assert
-		Assert.AreEqual(2, actualResult.Measurements.Count);
+		Assert.AreEqual(2, actualResult.Measurements.Length);
 
 		Assert.AreEqual(measurements[0], actualResult.Measurements[0]);
 
