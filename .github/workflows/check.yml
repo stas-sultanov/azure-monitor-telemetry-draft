@@ -150,6 +150,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
     - name: Download
       uses: actions/download-artifact@v4
       with:
@@ -165,3 +171,11 @@ jobs:
         --no-build
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Code Coverage Summary Report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml
+        badge: true
+        format: markdown
+        output: both
