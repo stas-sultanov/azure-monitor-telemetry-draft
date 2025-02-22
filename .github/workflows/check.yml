@@ -119,23 +119,6 @@ jobs:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
-    - name: Publish Coverage Summary
-      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
-      with:
-        badge: true
-        filename: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml
-        format: markdown
-        output: file
-        thresholds: '95 99'
-
-    - name: Add Coverage PR Comment
-      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
-      if: github.event_name == 'pull_request'
-      with:
-        header: Unit Tests Results
-        recreate: true
-        path: code-coverage-results.md
-
   runIntegrationTests:
 
     env:
@@ -208,23 +191,6 @@ jobs:
         check_name: Integration Tests
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
-
-    - name: Publish Coverage Summary
-      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
-      with:
-        badge: true
-        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml'
-        format: markdown
-        output: file
-        thresholds: '95 99'
-
-    - name: Add Coverage PR Comment
-      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
-      if: github.event_name == 'pull_request'
-      with:
-        header: Integration Tests
-        recreate: true
-        path: code-coverage-results.md
 
     - name: Delete Azure Resources
       uses: azure/cli@v2
