@@ -32,13 +32,13 @@ jobs:
 
     env:
       # Configuration type to build.
-      BUILD_CONFIGURATION: Release
+      BUILD_CONFIGURATION_NAME: Release
       # Path to the solution file relative to the root of the project.
       SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
       # Path to the coverage report directory relative to the root of the project.
-      TESTS_COVERAGE_DIRECTORY: .\testsCoverage
+      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
       # Path to the test results directory relative to the root of the project.
-      TESTS_RESULTS_DIRECTORY: .\testsResults
+      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
       # Verbosity level
       VERBOSITY: quiet
 
@@ -54,7 +54,7 @@ jobs:
     - name: Build
       run: >-
         dotnet build ${{ env.SOLUTION_FILE }}
-        --configuration ${{ env.BUILD_CONFIGURATION }}
+        --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
         --no-restore
         --verbosity ${{ env.VERBOSITY }}
 
@@ -62,12 +62,12 @@ jobs:
       run: >-
         dotnet test ${{ env.SOLUTION_FILE }}
         --collect:"XPlat Code Coverage"
-        --configuration ${{ env.BUILD_CONFIGURATION }}
+        --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
         --filter TestCategory=UnitTests
         --framework net9.0
         --logger:"trx"
         --no-build
-        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY }}
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
         --verbosity ${{ env.VERBOSITY }}
 
     - name: Publish Test Results
@@ -75,12 +75,12 @@ jobs:
       if: always()
       with:
         files: |
-          ${{ env.TESTS_RESULTS_DIRECTORY }}\**\*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\**\*.trx
 
     - name: Convert Coverage Report
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY }} -reporttypes:'MarkdownSummaryGithub'
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY_PATH }} -reporttypes:'MarkdownSummaryGithub'
 
     - name: Publish Coverage Report
       uses: LouisBrunner/checks-action@6b626ffbad7cc56fd58627f774b9067e6118af23 #v2.0.0
@@ -89,4 +89,4 @@ jobs:
         name: Test Coverage
         conclusion: ${{ job.status }}
         output: "{\"summary\":\"Coverage\"}"
-        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY }}\SummaryGithub.md
+        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY_PATH }}\SummaryGithub.md

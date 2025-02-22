@@ -44,8 +44,6 @@ jobs:
       BUILD_CONFIGURATION_NAME: Release
       # Path to the project file relative to the root of the project.
       MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
-      # NuGet API url
-      NUGET_API_URL: https://apiint.nugettest.org/v3/index.json
       # Package identifier
       PACKAGE_ID: Stas.Azure.Monitor.Telemetry
       # Package output directory path
@@ -94,7 +92,7 @@ jobs:
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
-        --source $${{ env.NUGET_API_URL }}
+        --source ${{ vars.NUGET_API_URL }}
       
     - name: Upload Package
       uses: actions/upload-artifact@v4
