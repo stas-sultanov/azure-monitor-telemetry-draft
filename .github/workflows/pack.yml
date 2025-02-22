@@ -83,13 +83,8 @@ jobs:
         subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.*pkg"
 
     - name: Upload Package
+      id: upload-artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: nupkg
-        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\${{ env.PACKAGE_ID }}.${{ env.PACKAGE_VERSION }}.nupkg
-
-    - name: Upload Package
-      uses: actions/upload-artifact@v4
-      with:
-        name: snupkg
-        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\${{ env.PACKAGE_ID }}.${{ env.PACKAGE_VERSION }}.snupkg
+        name: packages
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
