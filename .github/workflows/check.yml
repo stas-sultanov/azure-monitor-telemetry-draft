@@ -66,13 +66,13 @@ jobs:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
         path: ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
 
-  runUnitTests:
+  testUnits:
 
     env:
       # Path to the test results directory relative to the root of the project.
       TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Run Unit Tests
+    name: Test Units
 
     needs: build
 
@@ -99,7 +99,7 @@ jobs:
     - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
-        --collect:"Code Coverage"
+        --collect:"Code Coverage;Format=Cobertura"
         --filter TestCategory=UnitTests
         --logger:"trx"
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
@@ -111,15 +111,32 @@ jobs:
         name: ${{ env.TESTS_ARTIFACT_NAME }}-results-unit
         path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
 
-    - name: Publish Tests Results
+    - name: Publish Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
-        check_name: Unit Tests Results
+        check_name: 'Test Results: Unit'
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
-  runIntegrationTests:
+    - name: Publish Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
+      with:
+        badge: true
+        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
+        format: markdown
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage to PR
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: 'Test Results: Unit'
+        recreate: true
+        path: code-coverage-results.md
+
+  testIntegration:
 
     env:
       # Name of the Azure data center where to deploy resources for integration tests
@@ -129,7 +146,7 @@ jobs:
       # Path to the test results directory relative to the root of the project.
       TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Run Integration Tests
+    name: Test Integration
 
     needs: build
 
@@ -172,8 +189,8 @@ jobs:
     - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
-        --collect:"XPlat Code Coverage"
-        --filter TestCategory=UnitTests
+        --collect:"Code Coverage;Format=Cobertura"
+        --filter TestCategory=IntegrationTests
         --logger:"trx"
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity detailed
@@ -184,13 +201,30 @@ jobs:
         name: ${{ env.TESTS_ARTIFACT_NAME }}-results-integration
         path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
 
-    - name: Publish Tests Results
+    - name: Publish Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
-        check_name: Integration Tests
+        check_name: 'Test Results: Integration'
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
+
+    - name: Publish Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
+      with:
+        badge: true
+        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
+        format: markdown
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage to PR
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: 'Test Results: Integration'
+        recreate: true
+        path: code-coverage-results.md
 
     - name: Delete Azure Resources
       uses: azure/cli@v2
