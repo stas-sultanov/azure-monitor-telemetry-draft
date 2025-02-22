@@ -133,18 +133,18 @@ jobs:
 
     env:
       # Path to the coverage report directory relative to the root of the project.
-      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
+      TESTS_COVERAGE_DIRECTORY_PATH: ./testsCoverage
       # Path to the test results directory relative to the root of the project.
-      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
+      TESTS_RESULTS_DIRECTORY_PATH: ./testsResults
 
     name: Run Integration Tests
 
     needs: build
 
     permissions:
-      # Required to write test results
+      # Required by [EnricoMi/publish-unit-test-result-action]
       checks: write
-      # Required to write test results
+      # Required by [EnricoMi/publish-unit-test-result-action, marocchino/sticky-pull-request-comment]
       pull-requests: write
 
     runs-on: ubuntu-latest
@@ -172,10 +172,28 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Code Coverage Summary Report
-      uses: irongut/CodeCoverageSummary@v1.3.0
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
+      if: always()
       with:
-        filename: ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml
+        check_name: Integration Tests
+        files: |
+          test-results/**/*.trx
+
+    - name: Publish Code Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
+      with:
         badge: true
+        fail_below_min: 95
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}/*/coverage.cobertura.xml
         format: markdown
-        output: both
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: Integration Tests
+        recreate: true
+        path: code-coverage-results.md
