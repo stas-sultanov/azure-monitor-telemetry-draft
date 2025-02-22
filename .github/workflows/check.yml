@@ -23,9 +23,9 @@ jobs:
     env:
       # Name of the configuration to build.
       BUILD_CONFIGURATION_NAME: Release
-      # Path to the solution file relative to the root of the project.
-      SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
-      # Path to the tests project
+      # Path to the project file
+      MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
+      # Path to the tests project file
       TESTS_PROJECT_FILE_PATH: .\tests\Azure.Monitor.Telemetry.Tests.csproj
       # Path to the test project publish directory.
       TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: .\result
@@ -37,7 +37,7 @@ jobs:
       contents: read
 
     # one of target frameworks is net462
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -45,12 +45,12 @@ jobs:
 
     - name: Restore
       run: >-
-        dotnet restore ${{ env.SOLUTION_FILE }}
+        dotnet restore
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
     - name: Build
       run: >-
-        dotnet build ${{ env.SOLUTION_FILE }}
+        dotnet build ${{ env.MAIN_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
         --no-restore
         --nologo
@@ -60,8 +60,11 @@ jobs:
       run: >-
         dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --no-build
+        --framework net9.0
+        --no-restore
         --nologo
+        --runtime linux-x64
+        --self-contained false
         --output ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
