@@ -1,9 +1,6 @@
-# The workflow to check if source code meets the following criteria:
-# - compiles successfully for all target frameworks
-# - unit tests runs successfully
-# - code is compliant with codeQL rules
+# The workflow to build and test the library
 
-name: Check
+name: Build and Test
 
 on:
   pull_request:
