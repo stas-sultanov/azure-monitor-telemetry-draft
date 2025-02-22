@@ -12,10 +12,9 @@ on:
 
 env:
   # Verbosity level for dotnet command
-  DOTNET_VERBOSITY: quiet
+  DOTNET_VERBOSITY: minimal
   # Name of the shared tests artifact
   TESTS_ARTIFACT_NAME: tests
-
 
 jobs:
 
@@ -24,12 +23,12 @@ jobs:
     env:
       # Name of the configuration to build.
       BUILD_CONFIGURATION_NAME: Release
-      # Path to the solution file relative to the root of the project.
-      SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
-      # Path to the tests project
-      TESTS_PROJECT_FILE_PATH: .\tests\Azure.Monitor.Telemetry.Tests.csproj
+      # Path to the project file
+      MAIN_PROJECT_FILE_PATH: src/Azure.Monitor.Telemetry.csproj
+      # Path to the tests project file
+      TESTS_PROJECT_FILE_PATH: tests/Azure.Monitor.Telemetry.Tests.csproj
       # Path to the test project publish directory.
-      TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: .\result
+      TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: out
 
     name: Build
 
@@ -44,88 +43,192 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Restore
+    - name: Build Main
       run: >-
-        dotnet restore ${{ env.SOLUTION_FILE }}
-        --verbosity ${{ env.DOTNET_VERBOSITY }}
-
-    - name: Build
-      run: >-
-        dotnet build ${{ env.SOLUTION_FILE }}
+        dotnet build ${{ env.MAIN_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --no-restore
         --nologo
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Publish
+    - name: Publish Tests
       run: >-
         dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --no-build
         --nologo
+        --runtime linux-x64
+        --self-contained false
         --output ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Upload
+    - name: Upload Tests
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
         path: ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
 
-  runUnitTests:
+  testUnits:
 
     env:
-      # Path to the coverage report directory relative to the root of the project.
-      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
       # Path to the test results directory relative to the root of the project.
-      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
+      TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Run Unit Tests
+    name: Test Units
 
     needs: build
 
     permissions:
-      # Required to write test results
+      # Required by [EnricoMi/publish-unit-test-result-action]
       checks: write
-      # Required to write test results
+      # Required by [EnricoMi/publish-unit-test-result-action, marocchino/sticky-pull-request-comment]
       pull-requests: write
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Download
-      uses: actions/download-artifact@v2
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Download Build
+      uses: actions/download-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
-  
-    - name: Test
-      run: >-
-        dotnet test
-        --collect:"XPlat Code Coverage"
-        --filter TestCategory=UnitTests
-        --framework net9.0
-        --logger:"trx"
-        --no-build
-        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
-        --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action/windows@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
+    - name: Run Tests
+      run: >-
+        dotnet test ./Azure.Monitor.Telemetry.Tests.dll
+        --collect:"Code Coverage;Format=Cobertura"
+        --filter TestCategory=UnitTests
+        --logger:"trx"
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+        --verbosity detailed
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-unit
+        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+
+    - name: Publish Results
+      uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
+        check_name: 'Test Results: Unit'
         files: |
-          ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\**\*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
-    - name: Convert Coverage Report
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY_PATH }} -reporttypes:'MarkdownSummaryGithub'
-
-    - name: Publish Coverage Report
-      uses: LouisBrunner/checks-action@6b626ffbad7cc56fd58627f774b9067e6118af23 #v2.0.0
+    - name: Publish Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: Test Coverage
-        conclusion: ${{ job.status }}
-        output: "{\"summary\":\"Coverage\"}"
-        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY_PATH }}\SummaryGithub.md
+        badge: true
+        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
+        format: markdown
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage to PR
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: 'Test Results: Unit'
+        recreate: true
+        path: code-coverage-results.md
+
+  testIntegration:
+
+    env:
+      # Name of the Azure data center where to deploy resources for integration tests
+      AZURE_DATACENTER_NAME: eastus
+      # Name of the Azure resource group to deploy resources for integration tests
+      AZURE_RESOURCE_GROUP_NAME: test
+      # Path to the test results directory relative to the root of the project.
+      TESTS_RESULTS_DIRECTORY_NAME: testsResults
+
+    name: Test Integration
+
+    needs: build
+
+    permissions:
+      # Required by [EnricoMi/publish-unit-test-result-action]
+      checks: write
+      # Required by [azure/login]
+      id-token: write
+      # Required by [EnricoMi/publish-unit-test-result-action, marocchino/sticky-pull-request-comment]
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
+        tenant-id: ${{ vars.ENTRA_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
+
+    - name: Create Azure Resource Group
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Download Build
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}
+
+    - name: Run Tests
+      run: >-
+        dotnet test ./Azure.Monitor.Telemetry.Tests.dll
+        --collect:"Code Coverage;Format=Cobertura"
+        --filter TestCategory=IntegrationTests
+        --logger:"trx"
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+        --verbosity detailed
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-integration
+        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+
+    - name: Publish Results
+      uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
+      if: always()
+      with:
+        check_name: 'Test Results: Integration'
+        files: |
+          ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
+
+    - name: Publish Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
+      with:
+        badge: true
+        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
+        format: markdown
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage to PR
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: 'Test Results: Integration'
+        recreate: true
+        path: code-coverage-results.md
+
+    - name: Delete Azure Resources
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
