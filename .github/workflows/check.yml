@@ -162,20 +162,6 @@ jobs:
 
     steps:
 
-    - name: Login to Azure
-      uses: azure/login@v2
-      with:
-        client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
-        tenant-id: ${{ vars.ENTRA_TENANT_ID }}
-        subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
-
-    - name: Create Azure Resource Group
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
-
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
       with:
@@ -185,6 +171,20 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
+
+    - name: Login to Azure
+      uses: azure/login@a65d910e8af852a8061c627c456678983e180302 #v2.2.0
+      with:
+        client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
+        tenant-id: ${{ vars.ENTRA_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
+
+    - name: Create Azure Resource Group
+      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
 
     - name: Run Tests
       run: >-
@@ -227,7 +227,7 @@ jobs:
         path: code-coverage-results.md
 
     - name: Delete Azure Resources
-      uses: azure/cli@v2
+      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
       with:
         azcliversion: latest
         inlineScript: |
