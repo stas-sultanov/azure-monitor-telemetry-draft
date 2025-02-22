@@ -14,7 +14,7 @@ env:
   # Verbosity level for dotnet command
   DOTNET_VERBOSITY: diag
   # Name of the shared tests artifact
-  TESTS_ARTIFACT_NAME: tests
+  TESTS_ARTIFACT_NAME: normal
 
 jobs:
 
@@ -65,10 +65,8 @@ jobs:
       run: >-
         dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --framework net9.0
         --no-restore
         --nologo
-        --runtime linux-x64
         --self-contained false
         --output ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
