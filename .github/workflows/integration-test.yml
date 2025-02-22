@@ -11,6 +11,8 @@ jobs:
 
     permissions:
       contents: read
+      # Required by azure/login action
+      id-token: write
 
     runs-on: windows-latest
 
