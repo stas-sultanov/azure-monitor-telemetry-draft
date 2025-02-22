@@ -15,7 +15,7 @@ on:
         required: true
         type: boolean
       push:
-        default: true
+        default: false
         description: Push to nuget.org
         required: true
         type: boolean
