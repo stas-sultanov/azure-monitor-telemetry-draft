@@ -16,7 +16,6 @@ env:
   # Name of the shared tests artifact
   TESTS_ARTIFACT_NAME: tests
 
-
 jobs:
 
   build:
@@ -94,7 +93,7 @@ jobs:
 
     steps:
     - name: Download
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
   
@@ -156,3 +155,13 @@ jobs:
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
 
+    - name: Test
+      run: >-
+        dotnet test
+        --collect:"XPlat Code Coverage"
+        --filter TestCategory=UnitTests
+        --framework net9.0
+        --logger:"trx"
+        --no-build
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
