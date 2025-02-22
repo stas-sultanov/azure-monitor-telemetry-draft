@@ -14,6 +14,11 @@ on:
         description: Is pre-release
         required: true
         type: boolean
+      push:
+        default: true
+        description: Push to nuget.org
+        required: true
+        type: boolean
 
 run-name: ${{ format('Pack {0}{1}', inputs.version, inputs.isPreRelease && '-pre' || '') }}
 
@@ -80,10 +85,16 @@ jobs:
       if: ${{ !inputs.isPreRelease }}
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: "${{ env.PACKAGE_OUTPUT_DIRECTORY }}/*.*pkg"
+        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.*pkg
 
+    - name: Publish Package
+      if: ${{ inputs.push }}
+      run: >-
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg
+        --api-key ${{ secrets.NUGET_API_KEY }}
+        --source https://api.int.nugettest.org/v3/index.json
+      
     - name: Upload Package
-      id: upload-artifacts
       uses: actions/upload-artifact@v4
       with:
         name: packages
