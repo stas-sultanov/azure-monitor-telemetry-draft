@@ -129,3 +129,30 @@ jobs:
         conclusion: ${{ job.status }}
         output: "{\"summary\":\"Coverage\"}"
         output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY_PATH }}\SummaryGithub.md
+
+  runIntegrationTests:
+
+    env:
+      # Path to the coverage report directory relative to the root of the project.
+      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
+      # Path to the test results directory relative to the root of the project.
+      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
+
+    name: Run Integration Tests
+
+    needs: build
+
+    permissions:
+      # Required to write test results
+      checks: write
+      # Required to write test results
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}
+
