@@ -77,7 +77,7 @@ jobs:
       # Path to the test results directory relative to the root of the project.
       TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Run Integration Tests
+    name: Run Unit Tests
 
     needs: build
 
@@ -96,23 +96,21 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Download
+    - name: Download Build
       uses: actions/download-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
 
-    - name: Test
+    - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
         --collect:"XPlat Code Coverage"
         --filter TestCategory=UnitTests
-        --framework net9.0
         --logger:"trx"
-        --no-build
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Publish Test Results
+    - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
@@ -120,11 +118,10 @@ jobs:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
-    - name: Publish Code Coverage
+    - name: Publish Coverage Summary
       uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
       with:
         badge: true
-        fail_below_min: 95
         filename: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml
         format: markdown
         output: file
@@ -164,14 +161,14 @@ jobs:
 
     steps:
 
-    - name: Azure login
+    - name: Login to Azure
       uses: azure/login@v2
       with:
         client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
         tenant-id: ${{ vars.ENTRA_TENANT_ID }}
         subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
 
-    - name: Create Resource Group
+    - name: Create Azure Resource Group
       uses: azure/cli@v2
       with:
         azcliversion: latest
@@ -183,23 +180,21 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: Download
+    - name: Download Build
       uses: actions/download-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
 
-    - name: Test
+    - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
         --collect:"XPlat Code Coverage"
         --filter TestCategory=IntegrationTests
-        --framework net9.0
         --logger:"trx"
-        --no-build
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Publish Test Results
+    - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
@@ -207,12 +202,11 @@ jobs:
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
-    - name: Publish Code Coverage
+    - name: Publish Coverage Summary
       uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
       with:
         badge: true
-        fail_below_min: 95
-        filename: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml
+        filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml'
         format: markdown
         output: file
         thresholds: '95 99'
@@ -224,3 +218,10 @@ jobs:
         header: Integration Tests
         recreate: true
         path: code-coverage-results.md
+
+    - name: Delete Azure Resources
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
