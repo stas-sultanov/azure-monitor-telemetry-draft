@@ -1,12 +1,16 @@
 # The workflow to test azure integration
 
-name: Check
+name: Test Azure
 
 on:
   workflow_dispatch:
 
 jobs:
   run:
+    env:
+      AZURE_DATACENTER_NAME: eastus
+      AZURE_RESOURCE_GROUP_NAME: test
+
     name: Run
 
     permissions:
@@ -23,3 +27,17 @@ jobs:
         client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
         tenant-id: ${{ vars.ENTRA_TENANT_ID }}
         subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
+
+    - name: Create Resource Group
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+
+    - name: Create Resource Group
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
