@@ -1,0 +1,131 @@
+# The workflow to check the library source with build and tests
+
+name: Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/check.yml"
+      - "src/**"
+      - "test/**"
+
+env:
+  # Verbosity level for dotnet command
+  DOTNET_VERBOSITY: quiet
+  # Name of the shared tests artifact
+  TESTS_ARTIFACT_NAME: tests
+
+
+jobs:
+
+  build:
+
+    env:
+      # Name of the configuration to build.
+      BUILD_CONFIGURATION_NAME: Release
+      # Path to the solution file relative to the root of the project.
+      SOLUTION_FILE: .\Azure.Monitor.Telemetry.sln
+      # Path to the tests project
+      TESTS_PROJECT_FILE_PATH: .\tests\Azure.Monitor.Telemetry.Tests.csproj
+      # Path to the test project publish directory.
+      TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: .\result
+
+    name: Build
+
+    permissions:
+      # Required to checkout the repo
+      contents: read
+
+    # one of target frameworks is net462
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Restore
+      run: >-
+        dotnet restore ${{ env.SOLUTION_FILE }}
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Build
+      run: >-
+        dotnet build ${{ env.SOLUTION_FILE }}
+        --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
+        --no-restore
+        --nologo
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Publish
+      run: >-
+        dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
+        --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
+        --no-build
+        --nologo
+        --output ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}
+        path: ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
+
+  runUnitTests:
+
+    env:
+      # Path to the coverage report directory relative to the root of the project.
+      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
+      # Path to the test results directory relative to the root of the project.
+      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
+
+    name: Run Unit Tests
+
+    needs: build
+
+    permissions:
+      # Required to write test results
+      checks: write
+      # Required to write test results
+      pull-requests: write
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}
+  
+    - name: Test
+      run: >-
+        dotnet test
+        --collect:"XPlat Code Coverage"
+        --filter TestCategory=UnitTests
+        --framework net9.0
+        --logger:"trx"
+        --no-build
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action/windows@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
+      if: always()
+      with:
+        files: |
+          ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\**\*.trx
+
+    - name: Convert Coverage Report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY_PATH }} -reporttypes:'MarkdownSummaryGithub'
+
+    - name: Publish Coverage Report
+      uses: LouisBrunner/checks-action@6b626ffbad7cc56fd58627f774b9067e6118af23 #v2.0.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Test Coverage
+        conclusion: ${{ job.status }}
+        output: "{\"summary\":\"Coverage\"}"
+        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY_PATH }}\SummaryGithub.md
