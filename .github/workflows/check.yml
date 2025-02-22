@@ -74,68 +74,8 @@ jobs:
   runUnitTests:
 
     env:
-      # Path to the coverage report directory relative to the root of the project.
-      TESTS_COVERAGE_DIRECTORY_PATH: .\testsCoverage
       # Path to the test results directory relative to the root of the project.
-      TESTS_RESULTS_DIRECTORY_PATH: .\testsResults
-
-    name: Run Unit Tests
-
-    needs: build
-
-    permissions:
-      # Required to write test results
-      checks: write
-      # Required to write test results
-      pull-requests: write
-
-    runs-on: windows-latest
-
-    steps:
-    - name: Download
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ env.TESTS_ARTIFACT_NAME }}
-  
-    - name: Test
-      run: >-
-        dotnet test ./Azure.Monitor.Telemetry.Tests.dll
-        --collect:"XPlat Code Coverage"
-        --filter TestCategory=UnitTests
-        --framework net9.0
-        --logger:"trx"
-        --no-build
-        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
-        --verbosity ${{ env.DOTNET_VERBOSITY }}
-
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action/windows@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
-      if: always()
-      with:
-        files: |
-          ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\**\*.trx
-
-    - name: Convert Coverage Report
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:${{ env.TESTS_RESULTS_DIRECTORY_PATH }}\*\coverage.cobertura.xml -targetdir:${{ env.TESTS_COVERAGE_DIRECTORY_PATH }} -reporttypes:'MarkdownSummaryGithub'
-
-    - name: Publish Coverage Report
-      uses: LouisBrunner/checks-action@6b626ffbad7cc56fd58627f774b9067e6118af23 #v2.0.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: Test Coverage
-        conclusion: ${{ job.status }}
-        output: "{\"summary\":\"Coverage\"}"
-        output_text_description_file: ${{ env.TESTS_COVERAGE_DIRECTORY_PATH }}\SummaryGithub.md
-
-  runIntegrationTests:
-
-    env:
-      # Path to the coverage report directory relative to the root of the project.
-      TESTS_COVERAGE_DIRECTORY_PATH: ./testsCoverage
-      # Path to the test results directory relative to the root of the project.
-      TESTS_RESULTS_DIRECTORY_PATH: ./testsResults
+      TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
     name: Run Integration Tests
 
@@ -169,7 +109,94 @@ jobs:
         --framework net9.0
         --logger:"trx"
         --no-build
-        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+        --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
+      if: always()
+      with:
+        check_name: Unit Tests
+        files: |
+          ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
+
+    - name: Publish Code Coverage
+      uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
+      with:
+        badge: true
+        fail_below_min: 95
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml
+        format: markdown
+        output: file
+        thresholds: '95 99'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
+      if: github.event_name == 'pull_request'
+      with:
+        header: Unit Tests
+        recreate: true
+        path: code-coverage-results.md
+
+  runIntegrationTests:
+
+    env:
+      # Name of the Azure data center where to deploy resources for integration tests
+      AZURE_DATACENTER_NAME: eastus
+      # Name of the Azure resource group to deploy resources for integration tests
+      AZURE_RESOURCE_GROUP_NAME: test
+      # Path to the test results directory relative to the root of the project.
+      TESTS_RESULTS_DIRECTORY_NAME: testsResults
+
+    name: Run Integration Tests
+
+    needs: build
+
+    permissions:
+      # Required by [EnricoMi/publish-unit-test-result-action]
+      checks: write
+      # Required by [azure/login]
+      id-token: write
+      # Required by [EnricoMi/publish-unit-test-result-action, marocchino/sticky-pull-request-comment]
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.ENTRA_APP_CLIENT_ID }}
+        tenant-id: ${{ vars.ENTRA_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
+
+    - name: Create Resource Group
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Download
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}
+
+    - name: Test
+      run: >-
+        dotnet test ./Azure.Monitor.Telemetry.Tests.dll
+        --collect:"XPlat Code Coverage"
+        --filter TestCategory=IntegrationTests
+        --framework net9.0
+        --logger:"trx"
+        --no-build
+        --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
     - name: Publish Test Results
@@ -178,14 +205,14 @@ jobs:
       with:
         check_name: Integration Tests
         files: |
-          test-results/**/*.trx
+          ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
     - name: Publish Code Coverage
       uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
       with:
         badge: true
         fail_below_min: 95
-        filename: ${{ env.TESTS_RESULTS_DIRECTORY_PATH }}/*/coverage.cobertura.xml
+        filename: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/coverage.cobertura.xml
         format: markdown
         output: file
         thresholds: '95 99'
