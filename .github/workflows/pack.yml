@@ -41,13 +41,15 @@ jobs:
       # Assembly Sign Certificate
       ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME: 'assembly.snk'
       # Configuration type to build.
-      BUILD_CONFIGURATION: Release
+      BUILD_CONFIGURATION_NAME: Release
       # Path to the project file relative to the root of the project.
-      MAIN_PROJECT_FILE: .\src\Azure.Monitor.Telemetry.csproj
+      MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
+      # NuGet API url
+      NUGET_API_URL: https://apiint.nugettest.org/v3/index.json
       # Package identifier
       PACKAGE_ID: Stas.Azure.Monitor.Telemetry
-      # Package output directory
-      PACKAGE_OUTPUT_DIRECTORY: .\out
+      # Package output directory path
+      PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
       PACKAGE_VERSION: ${{ format('{0}{1}', inputs.version, inputs.isPreRelease && '-pre' || '') }}
       # Repo url
@@ -68,9 +70,9 @@ jobs:
 
     - name: Pack Project
       run: >-
-        dotnet pack ${{ env.MAIN_PROJECT_FILE }}
-        --configuration ${{ env.BUILD_CONFIGURATION }}
-        --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        dotnet pack ${{ env.MAIN_PROJECT_FILE_PATH }}
+        --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
+        --output ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}
         --verbosity ${{ env.VERBOSITY }}
         -p:AssemblyOriginatorKeyFile=${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
         -p:AssemblyVersion=${{ inputs.version }}
@@ -85,17 +87,17 @@ jobs:
       if: ${{ !inputs.isPreRelease }}
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.*pkg
+        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
 
     - name: Publish Package
       if: ${{ inputs.push }}
       run: >-
-        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
-        --source https://api.int.nugettest.org/v3/index.json
+        --source $${{ env.NUGET_API_URL }}
       
     - name: Upload Package
       uses: actions/upload-artifact@v4
       with:
         name: packages
-        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}
