@@ -13,9 +13,8 @@ using System.Runtime.CompilerServices;
 /// </summary>
 /// <remarks>
 /// Provides thread-safe collection of telemetry items and supports batch publishing through configured telemetry publishers.
-/// Allows specifing common tags that will be attached to each telemetry item during publish operation.
+/// Allows specifying common tags that will be attached to each telemetry item during publish operation.
 /// </remarks>
-
 public sealed class TelemetryTracker
 {
 	#region Fields
@@ -121,7 +120,8 @@ public sealed class TelemetryTracker
 		}
 
 		// create a list to store telemetry items
-		var telemetryList = new List<Telemetry>(items.Count * 2); // just for case of active adding while flush
+		// List.Capacity do not use ConcurrentQueue.Count because it takes time to calculate and it may change 
+		var telemetryList = new List<Telemetry>();
 
 		// dequeue all items from the queue
 		while (items.TryDequeue(out var telemetry))
@@ -173,8 +173,8 @@ public sealed class TelemetryTracker
 		TimeSpan duration,
 		Boolean success,
 		String runLocation = null,
-		KeyValuePair<String, Double> [] measurements = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, Double>[] measurements = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -213,8 +213,8 @@ public sealed class TelemetryTracker
 		Uri uri,
 		HttpStatusCode statusCode,
 		TimeSpan duration,
-		KeyValuePair<String, Double> [] measurements = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, Double>[] measurements = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -260,8 +260,8 @@ public sealed class TelemetryTracker
 		Boolean success,
 		TimeSpan duration,
 		String typeName = null,
-		KeyValuePair<String, Double> [] measurements = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, Double>[] measurements = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -292,8 +292,8 @@ public sealed class TelemetryTracker
 	public void TrackEvent
 	(
 		String name,
-		KeyValuePair<String, Double> [] measurements = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, Double>[] measurements = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -323,8 +323,8 @@ public sealed class TelemetryTracker
 	(
 		Exception exception,
 		SeverityLevel? severityLevel = null,
-		KeyValuePair<String, Double> [] measurements = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, Double>[] measurements = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -358,7 +358,7 @@ public sealed class TelemetryTracker
 		String name,
 		Double value,
 		MetricValueAggregation valueAggregation = null,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{
@@ -386,7 +386,7 @@ public sealed class TelemetryTracker
 	(
 		String message,
 		SeverityLevel severityLevel,
-		KeyValuePair<String, String> [] properties = null,
+		KeyValuePair<String, String>[] properties = null,
 		KeyValuePair<String, String>[] tags = null
 	)
 	{

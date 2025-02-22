@@ -1,6 +1,6 @@
 # The workflow to compile main project and pack it as NuGet package.
 
-name: Pack
+name: Pack and Push
 
 on:
   workflow_dispatch:
