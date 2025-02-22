@@ -37,41 +37,31 @@ jobs:
       contents: read
 
     # one of target frameworks is net462
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-
-    - name: Restore
-      run: >-
-        dotnet restore
-        --verbosity ${{ env.DOTNET_VERBOSITY }}
-
-    - name: Build
+    - name: Build Main
       run: >-
         dotnet build ${{ env.MAIN_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --no-restore
         --nologo
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Publish
+    - name: Publish Tests
       run: >-
         dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
         --no-restore
         --nologo
+        --runtime linux-x64
         --self-contained false
         --output ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Upload
+    - name: Upload Tests
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
