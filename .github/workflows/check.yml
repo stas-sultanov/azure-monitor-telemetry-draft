@@ -12,7 +12,7 @@ on:
 
 env:
   # Verbosity level for dotnet command
-  DOTNET_VERBOSITY: quiet
+  DOTNET_VERBOSITY: diag
   # Name of the shared tests artifact
   TESTS_ARTIFACT_NAME: tests
 
@@ -110,11 +110,17 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-unit
+        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
+
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
-        check_name: Unit Tests
+        check_name: Unit Tests Results
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
@@ -131,7 +137,7 @@ jobs:
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
       if: github.event_name == 'pull_request'
       with:
-        header: Unit Tests
+        header: Unit Tests Results
         recreate: true
         path: code-coverage-results.md
 
@@ -193,6 +199,12 @@ jobs:
         --logger:"trx"
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-integration
+        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
 
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
