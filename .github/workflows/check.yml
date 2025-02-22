@@ -12,9 +12,9 @@ on:
 
 env:
   # Verbosity level for dotnet command
-  DOTNET_VERBOSITY: diag
+  DOTNET_VERBOSITY: minimal
   # Name of the shared tests artifact
-  TESTS_ARTIFACT_NAME: normal
+  TESTS_ARTIFACT_NAME: tests
 
 jobs:
 
@@ -28,7 +28,7 @@ jobs:
       # Path to the tests project file
       TESTS_PROJECT_FILE_PATH: tests/Azure.Monitor.Telemetry.Tests.csproj
       # Path to the test project publish directory.
-      TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: publish
+      TESTS_PROJECT_PUBLISH_DIRECTORY_PATH: out
 
     name: Build
 
@@ -54,7 +54,6 @@ jobs:
       run: >-
         dotnet publish ${{ env.TESTS_PROJECT_FILE_PATH }}
         --configuration ${{ env.BUILD_CONFIGURATION_NAME }}
-        --no-restore
         --nologo
         --runtime linux-x64
         --self-contained false
