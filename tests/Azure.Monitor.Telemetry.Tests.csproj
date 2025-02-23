@@ -27,4 +27,8 @@
 		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="infrastructure.bicep" CopyToPublishDirectory="Always" />
+	</ItemGroup>
+
 </Project>

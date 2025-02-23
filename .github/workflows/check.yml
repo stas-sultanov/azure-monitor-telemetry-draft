@@ -186,6 +186,16 @@ jobs:
         inlineScript: |
           az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
 
+    - name: Deploy Azure Resources
+      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
+      with:
+        azcliversion: latest
+        inlineScript: >-
+          az deployment group create
+          --parameters '{ \"baseName\": \"inttest\", \"tags\": { \"purpose\": \"integration test\" } }'
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+          --template-file infrastructure.bicep
+
     - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
@@ -194,6 +204,13 @@ jobs:
         --logger:"trx"
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity detailed
+
+    - name: Delete Azure Resources
+      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
 
     - name: Upload
       uses: actions/upload-artifact@v4
@@ -226,9 +243,3 @@ jobs:
         recreate: true
         path: code-coverage-results.md
 
-    - name: Delete Azure Resources
-      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
