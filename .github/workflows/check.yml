@@ -192,7 +192,7 @@ jobs:
         azcliversion: latest
         inlineScript: >-
           az deployment group create
-          --parameters '{ \"baseName\": \"integrationtest\", \"tags\": { \"purpose\": \"integration test\" } }'
+          --parameters '{ "baseName": "integrationtest", "tags": { "purpose": "integration test" } }'
           --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }}
           --template-file infrastructure.bicep
 
