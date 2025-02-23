@@ -187,14 +187,15 @@ jobs:
           az group create -l ${{ env.AZURE_DATACENTER_NAME }} -n ${{ env.AZURE_RESOURCE_GROUP_NAME }}
 
     - name: Deploy Azure Resources
-      uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
+      id: deploy
+      uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5 #v2
       with:
-        azcliversion: latest
-        inlineScript: >-
-          az deployment group create
-          --parameters '{ "baseName": "integrationtest", "tags": { "purpose": "integration test" } }'
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }}
-          --template-file infrastructure.bicep
+        failOnStdErr: false
+        parameters: baseName=suppatest tags={}
+        resourceGroupName:  ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+        subscriptionId: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
+        scope: resourcegroup
+        template: ./infrastructure.bicep
 
     - name: Run Tests
       run: >-
