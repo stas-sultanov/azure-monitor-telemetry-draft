@@ -608,6 +608,11 @@ public static class JsonTelemetrySerializer
 		Boolean scopeHasItems
 	)
 	{
+		if (String.IsNullOrEmpty(value))
+		{
+			return false;
+		}
+
 		if (scopeHasItems)
 		{
 			streamWriter.Write(",");

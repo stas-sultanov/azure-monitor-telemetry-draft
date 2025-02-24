@@ -68,9 +68,9 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			var ingestionEndpoint = new Uri(ingestionEndpointParam);
 
 			var instrumentationKeyParamName = config.Item1 + "InstrumentationKey";
-			var instrumentationKeyParam = TestContext.Properties[ingestionEndpointParamName]?.ToString() ?? throw new ArgumentException($"Parameter {instrumentationKeyParamName} has not been provided.");
-
+			var instrumentationKeyParam = TestContext.Properties[instrumentationKeyParamName]?.ToString() ?? throw new ArgumentException($"Parameter {instrumentationKeyParamName} has not been provided.");
 			var instrumentationKey = new Guid(instrumentationKeyParam);
+
 			var publisherTags = config.Item3;
 
 			TelemetryPublisher publisher;
