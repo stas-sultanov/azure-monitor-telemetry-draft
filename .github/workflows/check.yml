@@ -201,6 +201,12 @@ jobs:
         scope: resourcegroup
         template: ./infrastructure.bicep
 
+    - run: echo ${{ steps.deploy.outputs }}
+
+    - run: echo ${{ steps.deploy.outputs.resources }}
+
+    - run: echo ${{ steps.deploy.outputs.resources.value }}
+
     - name: Run Tests
       run: >-
         dotnet test ./Azure.Monitor.Telemetry.Tests.dll
