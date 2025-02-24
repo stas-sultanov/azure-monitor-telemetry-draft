@@ -18,19 +18,22 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 {
 	#region Fields
 
-	private static readonly JsonSerializerOptions jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+	private static readonly JsonSerializerOptions jsonSerializerOptions = new()
+	{
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+	};
 
-	private readonly HttpClient telemetryPublisherHttpClient;
-
-	protected readonly ChainedTokenCredential tokenCredential;
+	private readonly HttpClient httpClient;
 
 	#endregion
 
 	#region Properties
 
-	public TestContext TestContext { get; }
+	protected TestContext TestContext { get; }
 
-	protected TelemetryTracker TelemetryTracker { get; private set; }
+	protected TelemetryTracker TelemetryTracker { get; }
+
+	protected ChainedTokenCredential TokenCredential { get; }
 
 	#endregion
 
@@ -40,52 +43,81 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 	/// Initialize instance.
 	/// </summary>
 	/// <param name="testContext">Test context.</param>
-	public AzureIntegrationTestsBase(TestContext testContext)
+	/// <param name="configKeyPrefixList">The list of configuration key prefixes</param>
+	public AzureIntegrationTestsBase
+	(
+		TestContext testContext,
+		KeyValuePair<String, String>[] trackerTags,
+		params Tuple<String, Boolean, KeyValuePair<String, String>[]>[] configList
+	)
 	{
 		TestContext = testContext;
 
-		//// create token credential
-		tokenCredential = new ChainedTokenCredential
+		// create token credential
+		TokenCredential = new ChainedTokenCredential
 		(
+			// to authenticate developer within the IDE
 			new VisualStudioCredential(),
+			// to authenticate developer within the IDE
 			new VisualStudioCodeCredential(),
-			new ManagedIdentityCredential()
+			// to authenticate workflow within the agent
+			new AzureCliCredential()
 		);
 
-		// create HTTP Client for telemetry publisher
-		telemetryPublisherHttpClient = new HttpClient();
+		httpClient = new HttpClient();
 
-		var ingestionEndpoint = new Uri(TestContext.Properties[@"Azure.Monitor.Default.IngestionEndpoint"].ToString());
-		var instrumentationKey = new Guid(TestContext.Properties[@"Azure.Monitor.Default.InstrumentationKey"].ToString());
+		var telemetryPublishers = new List<TelemetryPublisher>();
 
-		// create telemetry publisher
-		var httpTelemetryPublisher = new HttpTelemetryPublisher
-		(
-			telemetryPublisherHttpClient,
-			ingestionEndpoint,
-			instrumentationKey,
-			async (cancellationToken) =>
-			{
-				var tokenRequestContext = new TokenRequestContext(HttpTelemetryPublisher.AuthorizationScopes);
-
-				var token = await tokenCredential.GetTokenAsync(tokenRequestContext, cancellationToken);
-
-				var result = new BearerToken(token.Token, token.ExpiresOn);
-
-				return result;
-			}
-		);
-
-		// create telemetry tracker
-		TelemetryTracker = new TelemetryTracker(telemetryPublishers: httpTelemetryPublisher)
+		foreach (var config in configList)
 		{
-			// create root operation
-			Operation = new OperationContext
+			var ingestionEndpoint = new Uri(TestContext.Properties[config.Item1 + "IngestionEndpoint"].ToString());
+			var instrumentationKey = new Guid(TestContext.Properties[config.Item1 + "InstrumentationKey"].ToString());
+			var publisherTags = config.Item3;
+
+			TelemetryPublisher publisher;
+
+			if (config.Item2)
 			{
-				Id = Guid.NewGuid().ToString("N"),
-				Name = $"Test # {DateTime.UtcNow:dd-hh-mm}"
+				publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: publisherTags);
 			}
-		};
+			else
+			{
+				async Task<BearerToken> getAccessToken(CancellationToken cancellationToken)
+				{
+					var tokenRequestContext = new TokenRequestContext(HttpTelemetryPublisher.AuthorizationScopes);
+
+					var token = await TokenCredential.GetTokenAsync(tokenRequestContext, cancellationToken);
+
+					var result = new BearerToken(token.Token, token.ExpiresOn);
+
+					return result;
+				}
+
+				publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, getAccessToken, publisherTags);
+			}
+
+			telemetryPublishers.Add(publisher);
+		}
+
+		KeyValuePair<String, String>[] extraTrackerTags =
+		[
+			new (TelemetryTagKey.CloudRole, "Test Agent"),
+			new (TelemetryTagKey.CloudRoleInstance, Environment.MachineName)
+		];
+
+		TelemetryTracker = new TelemetryTracker([.. extraTrackerTags, .. trackerTags], [.. telemetryPublishers]);
+	}
+
+	#endregion
+
+	#region Methods: Implementation of IDisposable
+
+	/// <inheritdoc/>
+	public virtual void Dispose()
+	{
+		httpClient.Dispose();
+
+		GC.SuppressFinalize(this);
 	}
 
 	#endregion
@@ -124,13 +156,6 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 		Assert.AreEqual(result.Count, response.ItemsReceived);
 
 		Assert.AreEqual(0, response.Errors.Length);
-	}
-
-	public virtual void Dispose()
-	{
-		telemetryPublisherHttpClient.Dispose();
-
-		GC.SuppressFinalize(this);
 	}
 
 	#endregion

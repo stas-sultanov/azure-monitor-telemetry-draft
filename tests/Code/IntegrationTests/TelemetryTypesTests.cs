@@ -12,7 +12,15 @@ using Azure.Monitor.Telemetry.Tests;
 /// <param name="testContext">Test context.</param>
 [TestCategory("IntegrationTests")]
 [TestClass]
-public sealed class TelemetryTypesTests(TestContext testContext) : AzureIntegrationTestsBase(testContext)
+public sealed class TelemetryTypesTests(TestContext testContext)
+	: AzureIntegrationTestsBase
+	(
+		testContext,
+		[],
+		[
+			Tuple.Create("Azure.Monitor.AuthOn.", true, Array.Empty<KeyValuePair<String, String>>())
+		]
+	)
 {
 	#region Fields
 
