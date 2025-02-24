@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 [TestClass]
 public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 {
-	private const String QueueName = "test";
+	private const String QueueName = "commands";
 
 	#region Data
 

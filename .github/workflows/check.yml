@@ -210,11 +210,11 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
         --
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.IngestionEndpoint\", value=\"https://eastus-8.in.applicationinsights.azure.com/\"\) \
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.InstrumentationKey\", value=\"1c09d202-9c4a-4b54-9f29-10959ec2c5a8\"\) \
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.IngestionEndpoint\", value=\"https://eastus-8.in.applicationinsights.azure.com/\"\) \
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.InstrumentationKey\", value=\"ddfc5c1f-25c1-45a5-8e0e-c945b4d7b2dd\"\) \
-        TestRunParameters.Parameter\(name=\"Azure.Queue.Default.ServiceUri\", value=\"https://suppatest.queue.core.windows.net/\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOff.properties.ingestionEndpoint }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.InstrumentationKey\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOff.properties.instrumentationKey }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOn.properties.ingestionEndpoint }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.InstrumentationKey\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOn.properties.instrumentationKey }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Queue.Default.ServiceUri\", value=\"${{ steps.deploy.outputs.resources.value.Storage.storageAccounts.Default.properties.primaryEndpoints.queue }}\"\)
 
     - name: Delete Azure Resources
       uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
