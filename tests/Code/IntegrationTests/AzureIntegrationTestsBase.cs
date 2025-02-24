@@ -55,15 +55,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 		TestContext = testContext;
 
 		// create token credential
-		TokenCredential = new DefaultAzureCredential(false);
-		//(
-		//	// to authenticate developer within the IDE
-		//	new VisualStudioCredential(),
-		//	// to authenticate developer within the IDE
-		//	new VisualStudioCodeCredential(),
-		//	// to authenticate workflow within the agent
-		//	new AzureCliCredential()
-		//);
+		TokenCredential = new DefaultAzureCredential();
 
 		httpClient = new HttpClient();
 
@@ -106,7 +98,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			new (TelemetryTagKey.CloudRoleInstance, Environment.MachineName)
 		];
 
-		TelemetryTracker = new TelemetryTracker([.. extraTrackerTags, .. trackerTags], [.. telemetryPublishers])
+		TelemetryTracker = new TelemetryTracker([.. telemetryPublishers], [.. extraTrackerTags, .. trackerTags])
 		{
 			Operation = new OperationContext()
 			{
@@ -132,38 +124,37 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 	#region Methods
 
-	protected static void AssertStandardSuccess(TelemetryPublishResult[] results)
+	protected static void AssertStandardSuccess(TelemetryPublishResult[] telemetryPublishResults)
 	{
-		// check results count
-		Assert.AreEqual(1, results.Length, "Results count not 1");
-
-		Assert.IsTrue(results[0] is HttpTelemetryPublishResult);
-
-		// get first
-		var result = (HttpTelemetryPublishResult)results[0];
-
-		// check success
-		Assert.IsTrue(result.Success, result.Response);
-
-		// check status code
-		Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-
-		// deserialize response
-		var response = JsonSerializer.Deserialize<HttpTelemetryPublishResponse>(result.Response, jsonSerializerOptions);
-
-		// check not null
-		if (response == null)
+		foreach (var telemetryPublishResult in telemetryPublishResults)
 		{
-			Assert.Fail("Track response can not be deserialized.");
+			var result = telemetryPublishResult as HttpTelemetryPublishResult;
 
-			return;
+			Assert.IsNotNull(result, $"Result is not of {nameof(HttpTelemetryPublishResult)} type.");
+
+			// check success
+			Assert.IsTrue(result.Success, result.Response);
+
+			// check status code
+			Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+
+			// deserialize response
+			var response = JsonSerializer.Deserialize<HttpTelemetryPublishResponse>(result.Response, jsonSerializerOptions);
+
+			// check not null
+			if (response == null)
+			{
+				Assert.Fail("Track response can not be deserialized.");
+
+				return;
+			}
+
+			Assert.AreEqual(result.Count, response.ItemsAccepted);
+
+			Assert.AreEqual(result.Count, response.ItemsReceived);
+
+			Assert.AreEqual(0, response.Errors.Length);
 		}
-
-		Assert.AreEqual(result.Count, response.ItemsAccepted);
-
-		Assert.AreEqual(result.Count, response.ItemsReceived);
-
-		Assert.AreEqual(0, response.Errors.Length);
 	}
 
 	#endregion

@@ -66,13 +66,13 @@ jobs:
         name: ${{ env.TESTS_ARTIFACT_NAME }}
         path: ${{ env.TESTS_PROJECT_PUBLISH_DIRECTORY_PATH }}
 
-  testUnits:
+  runUnitTests:
 
     env:
       # Path to the test results directory relative to the root of the project.
       TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Test Units
+    name: Run Unit Tests
 
     needs: build
 
@@ -107,17 +107,11 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-unit
-        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
-
-    - name: Publish Results
+    - name: Publish Result
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
-        check_name: 'Test Results: Unit'
+        check_name: Unit Tests
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
@@ -134,21 +128,23 @@ jobs:
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
       if: github.event_name == 'pull_request'
       with:
-        header: 'Test Results: Unit'
+        header: Unit Tests
         recreate: true
         path: code-coverage-results.md
 
-  testIntegration:
+  runIntegrationTests:
 
     env:
       # Name of the Azure data center where to deploy resources for integration tests
       AZURE_DATACENTER_NAME: eastus
       # Name of the Azure resource group to deploy resources for integration tests
-      AZURE_RESOURCE_GROUP_NAME: test
+      AZURE_RESOURCE_GROUP_NAME: github-${{ github.repository }}
+      # Name of the Azure resource group to deploy resources for integration tests
+      AZURE_RESOURCE_NAME_PREFIX: ${{ github.run_id }}
       # Path to the test results directory relative to the root of the project.
       TESTS_RESULTS_DIRECTORY_NAME: testsResults
 
-    name: Test Integration
+    name: Run Integration Tests
 
     needs: build
 
@@ -195,7 +191,7 @@ jobs:
       uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5 #v2
       with:
         failOnStdErr: false
-        parameters: baseName=suppatest tags={}
+        parameters: baseName=${{ env.AZURE_RESOURCE_NAME_PREFIX }} tags={}
         resourceGroupName:  ${{ env.AZURE_RESOURCE_GROUP_NAME }}
         subscriptionId: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
         scope: resourcegroup
@@ -235,7 +231,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
       with:
-        check_name: 'Test Results: Integration'
+        check_name: Integration Tests
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
@@ -252,7 +248,7 @@ jobs:
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
       if: github.event_name == 'pull_request'
       with:
-        header: 'Test Results: Integration'
+        header: Integration Tests
         recreate: true
         path: code-coverage-results.md
 

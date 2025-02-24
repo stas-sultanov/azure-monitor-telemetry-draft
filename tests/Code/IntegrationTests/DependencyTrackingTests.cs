@@ -68,7 +68,7 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 	#endregion
 
-	#region Tests
+	#region Methods: Tests
 
 	[TestMethod]
 	public async Task AzureQueue_Success()
@@ -91,7 +91,6 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 		_ = await queueClient.SendMessageAsync("end", cancellationToken);
 
-		// postpare
 		var requestTelemetry = new RequestTelemetry(startTime, requestId, new Uri($"tst:{nameof(DependencyTrackingTests)}"), "OK")
 		{
 			Duration = DateTime.UtcNow - startTime,
@@ -99,6 +98,8 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 			Operation = requestOperation,
 			Success = true
 		};
+
+		TelemetryTracker.Add(requestTelemetry);
 
 		var result = await TelemetryTracker.PublishAsync(cancellationToken);
 
@@ -108,7 +109,7 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 	#endregion
 
-	#region Methods: Impelmentation of IDisposable
+	#region Methods: Implementation of IDisposable
 
 	/// <inheritdoc/>
 	public override void Dispose()

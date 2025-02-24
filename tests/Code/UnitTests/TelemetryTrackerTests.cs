@@ -30,7 +30,7 @@ public sealed class TelemetryTrackerTests
 
 	#endregion
 
-	#region Tests: Constructors
+	#region Methos: Tests Constructors
 
 	[TestMethod]
 	public void Constructor()
@@ -48,10 +48,77 @@ public sealed class TelemetryTrackerTests
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
 
 		// act
-		_ = new TelemetryTracker(tags, telemetryPublisher)
+		_ = new TelemetryTracker([telemetryPublisher], tags)
 		{
 			Operation = operation
 		};
+	}
+
+	[TestMethod]
+	public void Constructor_ThrowsArgumentException_IfTagsKeyOrValueIsNullOrWhiteSpace()
+	{
+		// act
+		var exception0 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([], tags: [ new(null, "value")])
+		);
+
+		Assert.AreEqual("tags", exception0.ParamName);
+
+		// act
+		var exception1 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([], tags: [ new("", "value")])
+		);
+
+		Assert.AreEqual("tags", exception1.ParamName);
+
+		// act
+		var exception2 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([], tags: [ new("     ", "value")])
+		);
+
+		Assert.AreEqual("tags", exception2.ParamName);
+
+		// act
+		var exception3 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([], tags: [ new("key", null)])
+		);
+
+		Assert.AreEqual("tags", exception3.ParamName);
+
+		// act
+		var exception4 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([],tags: [ new("key", "")])
+		);
+
+		Assert.AreEqual("tags", exception4.ParamName);
+
+		// act
+		var exception5 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([],tags: [ new("key", "    ")])
+		);
+
+		Assert.AreEqual("tags", exception5.ParamName);
+	}
+
+	[TestMethod]
+	public void Constructor_ThrowsArgumentException_IfTelemetryPublishersContainsNull()
+	{
+		TelemetryPublisher publisher0 = null;
+		TelemetryPublisher publisher1 = null;
+
+		// act
+		var exception = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new TelemetryTracker([publisher0, publisher1], [ new("key0", "value0"), new ("key1", "value1")])
+		);
+
+		Assert.AreEqual("telemetryPublishers", exception.ParamName);
 	}
 
 	#endregion
@@ -62,7 +129,7 @@ public sealed class TelemetryTrackerTests
 	public async Task Method_PublishAsync_ShouldReturnEmptySuccess_WhenNoItems()
 	{
 		// arrange
-		var telemetryTracker = new TelemetryTracker();
+		var telemetryTracker = new TelemetryTracker([]);
 
 		// act
 		var result = await telemetryTracker.PublishAsync();
@@ -80,7 +147,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher);
+		var telemetryTracker = new TelemetryTracker([telemetryPublisher]);
 
 		// act
 		telemetryTracker.Add(null);
@@ -101,7 +168,7 @@ public sealed class TelemetryTrackerTests
 			Id = operationId
 		};
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker([telemetryPublisher])
 		{
 			Operation = operation
 		};
@@ -128,7 +195,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker([telemetryPublisher])
 		{
 			Operation = operation
 		};
@@ -156,7 +223,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
@@ -187,7 +254,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
@@ -216,7 +283,7 @@ public sealed class TelemetryTrackerTests
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
 		var name = "test";
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
@@ -237,7 +304,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
@@ -260,7 +327,7 @@ public sealed class TelemetryTrackerTests
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
@@ -292,7 +359,7 @@ public sealed class TelemetryTrackerTests
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
 		var message = "test";
 		var severityLevel = SeverityLevel.Information;
-		var telemetryTracker = new TelemetryTracker([], telemetryPublisher)
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, [])
 		{
 			Operation = operation
 		};
