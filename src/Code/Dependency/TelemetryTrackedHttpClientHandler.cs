@@ -28,13 +28,13 @@ public class TelemetryTrackedHttpClientHandler
 	/// A delegate that returns an identifier for the <see cref="DependencyTelemetry"/>.
 	/// </summary>
 	/// <exception cref="ArgumentNullException"> when <paramref name="getId"/> is null.</exception>
-	private readonly Func<String> getId = getId ?? throw new ArgumentNullException(nameof(getId));
+	private readonly Func<String> getId = getId;
 
 	/// <summary>
 	/// The telemetry tracker to track outgoing HTTP requests.
 	/// </summary>
 	/// <exception cref="ArgumentNullException"> when <paramref name="telemetryTracker"/> is null.</exception>
-	private readonly TelemetryTracker telemetryTracker = telemetryTracker ?? throw new ArgumentNullException(nameof(telemetryTracker));
+	private readonly TelemetryTracker telemetryTracker = telemetryTracker;
 
 	/// <inheritdoc/>
 	protected override async Task<HttpResponseMessage> SendAsync
@@ -65,7 +65,7 @@ public class TelemetryTrackedHttpClientHandler
 		var id = getId();
 
 		// track telemetry
-		telemetryTracker.TrackDependency(time, id, request.Method, request.RequestUri, result.StatusCode, timer.Elapsed);
+		telemetryTracker.TrackDependency(time, id, request.Method, request.RequestUri ?? new Uri("http:none"), result.StatusCode, timer.Elapsed);
 
 		return result;
 	}

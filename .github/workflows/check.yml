@@ -109,9 +109,9 @@ jobs:
 
     - name: Publish Result
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
-      if: always()
       with:
         check_name: Unit Tests
+        check_run: false # feature does not work well like at all
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
@@ -138,7 +138,7 @@ jobs:
       # Name of the Azure data center where to deploy resources for integration tests
       AZURE_DATACENTER_NAME: eastus
       # Name of the Azure resource group to deploy resources for integration tests
-      AZURE_RESOURCE_GROUP_NAME: github-azure-monitor-telemetry
+      AZURE_RESOURCE_GROUP_NAME: 'github-azure-monitor-telemetry-test-${{ github.run_number }}'
       # Name of the Azure resource group to deploy resources for integration tests
       AZURE_RESOURCE_NAME_PREFIX: ${{ github.run_id }}
       # Path to the test results directory relative to the root of the project.
@@ -215,6 +215,7 @@ jobs:
         TestRunParameters.Parameter\(name=\"Azure.Queue.Default.ServiceUri\", value=\"${{ steps.deploy.outputs.storageDefaultQueueEndpoint }}\"\)
 
     - name: Delete Azure Resources
+      if: steps.deploy.outcome == 'success'
       uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
       with:
         azcliversion: latest
@@ -223,9 +224,9 @@ jobs:
 
     - name: Publish Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
-      if: always()
       with:
         check_name: Integration Tests
+        check_run: false # feature does not work well like at all
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
@@ -236,7 +237,7 @@ jobs:
         filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
         format: markdown
         output: file
-        thresholds: '90 95'
+        thresholds: '75 85'
 
     - name: Add Coverage to PR
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1

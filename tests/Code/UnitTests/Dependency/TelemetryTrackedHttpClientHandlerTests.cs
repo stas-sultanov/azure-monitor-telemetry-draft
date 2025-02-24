@@ -19,30 +19,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 public sealed class TelemetryTrackedHttpClientHandlerTests
 {
 	[TestMethod]
-	public void Constructor_ThrowsException_WhenParameterIsNull()
-	{
-		// arrange
-		static String getId()
-		{
-			return Guid.NewGuid().ToString();
-		}
-
-		var telemetryTracker = new TelemetryTracker([]);
-
-		// act and assert
-		_ = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new TelemetryTrackedHttpClientHandler(null, getId), "telemetryTracker");
-
-		_ = Assert.ThrowsExactly<ArgumentNullException>(() => _ = new TelemetryTrackedHttpClientHandler(telemetryTracker, null));
-
-		using var x = new TelemetryTrackedHttpClientHandler(telemetryTracker, getId);
-	}
-
-	[TestMethod]
 	public async Task SendAsync_TracksTelemetry()
 	{
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
-		var telemetryTracker = new TelemetryTracker([telemetryPublisher], []);
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher);
 		var handler = new TelemetryTrackedHttpClientHandler(telemetryTracker, () => "test-id");
 		var httpClient = new HttpClient(handler);
 		var request = new HttpRequestMessage(HttpMethod.Get, "https://google.com");

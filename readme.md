@@ -9,7 +9,7 @@ A lightweight, high-performance library for tracking and publishing telemetry to
 
 Developed by [Stas Sultanov](https://www.linkedin.com/in/stas-sultanov/), this library is designed for efficiency, prioritizing speed and minimal memory usage.
 
-If you or your company find it useful, please consider [supporting the author](#support-the-author).
+If the library is useful for your business, please consider [supporting the author](#support-the-author).
 
 ## Getting Started
 
@@ -39,6 +39,17 @@ The way official sdk is implement, does not work for certain scenarios like deve
 - Neither official Microsoft package nor OpenTelemetry with Exporter are not designed to work as fast as possible and have the smallest memory footprint possible.
 
 Considering these factors, the author built this library from scratch with a focus on performance, low memory usage, and support of .NET versions which still in LTS, making it an ideal choice for scenarios where efficiency is critical.
+
+## Compare with other libraries
+
+The table below demonstrates difference in files count and total size:
+
+| Package(s)                                   | NET462 | NET8 | NET9 | Entra Auth
+| :------------------------------------------- | :----- | :--- | :--- | :---
+| Stas.Azure.Monitor.Telemetry           1.0.0 | Files: 1<br/>Size:  42KB | Files:   1<br/>Size:   42KB | Files: 1<br/>Size:  42KB | Yes
+| Microsoft.ApplicationInsights         2.23.0 | Files: 6<br/>Size: 761KB | Files:   1<br/>Size:  378KB | Files: 1<br/>Size: 378KB | No
+| Microsoft.ApplicationInsights         2.23.0 <br/> Azure.Core                            1.13.2 | Files: 112<br/>Size: 4.53MB | Files:   5<br/>Size:  945KB | Files:   5<br/>Size:  945KB | Yes
+| OpenTelemetry                         1.11.1 <br/> Azure.Monitor.OpenTelemetry.Exporter  1.13.0 | Files: 126<br/>Size: 5.12MB | Files:  32<br/>Size: 2.33MB | Files:  26<br/>Size: 2.18MB | Yes
 
 ## Supported telemetry types
 
