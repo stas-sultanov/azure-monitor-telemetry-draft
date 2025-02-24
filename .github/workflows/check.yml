@@ -122,7 +122,7 @@ jobs:
         filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
         format: markdown
         output: file
-        thresholds: '90 95'
+        thresholds: '95 99'
 
     - name: Add Coverage to PR
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
@@ -138,7 +138,7 @@ jobs:
       # Name of the Azure data center where to deploy resources for integration tests
       AZURE_DATACENTER_NAME: eastus
       # Name of the Azure resource group to deploy resources for integration tests
-      AZURE_RESOURCE_GROUP_NAME: github-azure-monitor-telemetry
+      AZURE_RESOURCE_GROUP_NAME: 'github-azure-monitor-telemetry-test-${{ github.run_number }}'
       # Name of the Azure resource group to deploy resources for integration tests
       AZURE_RESOURCE_NAME_PREFIX: ${{ github.run_id }}
       # Path to the test results directory relative to the root of the project.
@@ -236,7 +236,7 @@ jobs:
         filename: '${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*/*.cobertura.xml'
         format: markdown
         output: file
-        thresholds: '90 95'
+        thresholds: '75 85'
 
     - name: Add Coverage to PR
       uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1

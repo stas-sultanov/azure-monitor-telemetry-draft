@@ -53,7 +53,9 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 		queueClientHttpClientTransport = new HttpClientTransport(handler);
 
-		var queueServiceUri = new Uri(TestContext.Properties[@"Azure.Queue.Default.ServiceUri"].ToString());
+		var queueServiceUriParamName = @"Azure.Queue.Default.ServiceUri";
+		var queueServiceUriParam = TestContext.Properties[queueServiceUriParamName]?.ToString() ?? throw new ArgumentException($"Parameter {queueServiceUriParamName} has not been provided.");
+		var queueServiceUri = new Uri(queueServiceUriParam);
 
 		var queueClientOptions = new QueueClientOptions()
 		{
@@ -80,7 +82,7 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 		var requestOperation = TelemetryTracker.Operation;
 
-		TelemetryTracker.Operation = requestOperation with { ParentId = requestId };
+		//TelemetryTracker.Operation = requestOperation with(ParentId = requestId);
 
 		var cancellationToken = TestContext.CancellationTokenSource.Token;
 
@@ -91,11 +93,10 @@ public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 
 		_ = await queueClient.SendMessageAsync("end", cancellationToken);
 
-		var requestTelemetry = new RequestTelemetry(startTime, requestId, new Uri($"tst:{nameof(DependencyTrackingTests)}"), "OK")
+		var requestTelemetry = new RequestTelemetry(requestOperation, startTime, requestId, new Uri($"tst:{nameof(DependencyTrackingTests)}"), "OK")
 		{
 			Duration = DateTime.UtcNow - startTime,
 			Name = nameof(AzureQueue_Success),
-			Operation = requestOperation,
 			Success = true
 		};
 

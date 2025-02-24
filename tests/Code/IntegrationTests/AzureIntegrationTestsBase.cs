@@ -63,8 +63,14 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 		foreach (var config in configList)
 		{
-			var ingestionEndpoint = new Uri(TestContext.Properties[config.Item1 + "IngestionEndpoint"].ToString());
-			var instrumentationKey = new Guid(TestContext.Properties[config.Item1 + "InstrumentationKey"].ToString());
+			var ingestionEndpointParamName = config.Item1 + "IngestionEndpoint";
+			var ingestionEndpointParam = TestContext.Properties[ingestionEndpointParamName]?.ToString() ?? throw new ArgumentException($"Parameter {ingestionEndpointParamName} has not been provided.");
+			var ingestionEndpoint = new Uri(ingestionEndpointParam);
+
+			var instrumentationKeyParamName = config.Item1 + "InstrumentationKey";
+			var instrumentationKeyParam = TestContext.Properties[ingestionEndpointParamName]?.ToString() ?? throw new ArgumentException($"Parameter {instrumentationKeyParamName} has not been provided.");
+
+			var instrumentationKey = new Guid(instrumentationKeyParam);
 			var publisherTags = config.Item3;
 
 			TelemetryPublisher publisher;
@@ -98,14 +104,9 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			new (TelemetryTagKey.CloudRoleInstance, Environment.MachineName)
 		];
 
-		TelemetryTracker = new TelemetryTracker([.. telemetryPublishers], [.. extraTrackerTags, .. trackerTags])
-		{
-			Operation = new OperationContext()
-			{
-				Name = $"TEST #{DateTime.UtcNow:yyMMddHHmm}",
-				Id = ActivityTraceId.CreateRandom().ToString()
-			}
-		};
+		var operation = new OperationContext(ActivityTraceId.CreateRandom().ToString(), $"TEST #{DateTime.UtcNow:yyMMddHHmm}");
+
+		TelemetryTracker = new TelemetryTracker([.. telemetryPublishers], operation, [.. extraTrackerTags, .. trackerTags]);
 	}
 
 	#endregion

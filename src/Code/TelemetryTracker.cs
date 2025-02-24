@@ -21,8 +21,9 @@ public sealed class TelemetryTracker
 
 	private static readonly TelemetryPublishResult[] emptySuccess = [];
 	private readonly ConcurrentQueue<Telemetry> items;
-	private readonly KeyValuePair<String, String> [] tags;
+	private readonly KeyValuePair<String, String>[]? tags;
 	private readonly AsyncLocal<OperationContext> operation;
+	private readonly OperationContext rootOperation;
 	private readonly TelemetryPublisher[] telemetryPublishers;
 
 	#endregion
@@ -33,15 +34,17 @@ public sealed class TelemetryTracker
 	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
 	/// </summary>
 	/// <param name="telemetryPublisher">A telemetry publisher to publish the telemetry data.</param>
+	/// <param name="rootOperation">Root destributed operation.</param>
 	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
 	/// <exception cref="ArgumentNullException">If <paramref name="telemetryPublisher"/> is null.</exception>
 	/// <exception cref="ArgumentException">If <paramref name="tags"/> contains an item which key or value is null or whitespace.</exception>
 	public TelemetryTracker
 	(
 		TelemetryPublisher telemetryPublisher,
-		KeyValuePair<String, String>[] tags = null
+		OperationContext? rootOperation = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
-		: this([telemetryPublisher], tags)
+		: this([telemetryPublisher], rootOperation, tags)
 	{
 	}
 
@@ -49,50 +52,27 @@ public sealed class TelemetryTracker
 	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
 	/// </summary>
 	/// <param name="telemetryPublishers">An array of telemetry publishers to publish the telemetry data.</param>
+	/// <param name="rootOperation">Root destributed operation.</param>
 	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
-	/// <exception cref="ArgumentNullException">If <paramref name="telemetryPublishers"/> is null.</exception>
-	/// <exception cref="ArgumentException">If <paramref name="telemetryPublishers"/> contains null.</exception>
-	/// <exception cref="ArgumentException">If <paramref name="tags"/> contains an item which key or value is null or whitespace.</exception>
 	public TelemetryTracker
 	(
 		TelemetryPublisher[] telemetryPublishers,
-		KeyValuePair<String, String>[] tags = null)
+		OperationContext? rootOperation = null,
+		KeyValuePair<String, String>[]? tags = null
+	)
 	{
-		this.telemetryPublishers = telemetryPublishers ?? throw new ArgumentNullException(nameof(telemetryPublishers));
+		this.telemetryPublishers = telemetryPublishers; 
 
-		for (var index = 0; index < telemetryPublishers.Length; index++)
-		{
-			var telemetryPublisher = telemetryPublishers[index];
-
-			if (telemetryPublisher == null)
-			{
-				throw new ArgumentException("Contains null", nameof(telemetryPublishers));
-			}
-		}
-
-		if (tags != null)
-		{
-			for (var index = 0; index < tags.Length; index++)
-			{
-				var tag = tags[index];
-
-				if (String.IsNullOrWhiteSpace(tag.Key))
-				{
-					throw new ArgumentException("Contains an item with Key which is null or whitespace.", nameof(tags));
-				}
-
-				if (String.IsNullOrWhiteSpace(tag.Value))
-				{
-					throw new ArgumentException("Contains an item with Value which is null or whitespace.", nameof(tags));
-				}
-			}
-		}
+		this.rootOperation = rootOperation ?? new OperationContext();
 
 		this.tags = tags;
 
 		items = new();
 
-		operation = new();
+		operation = new()
+		{
+			Value = this.rootOperation
+		};
 	}
 
 	#endregion
@@ -104,9 +84,9 @@ public sealed class TelemetryTracker
 	/// </summary>
 	public OperationContext Operation
 	{
-		get => operation.Value;
+		get => operation.Value ?? rootOperation;
 
-		set => operation.Value = value;
+		private set => operation.Value = value;
 	}
 
 	#endregion
@@ -114,16 +94,11 @@ public sealed class TelemetryTracker
 	#region Methods
 
 	/// <summary>
-	/// Adds a telemetry item to the tracking queue, if it is not <c>null</c>.
+	/// Adds a telemetry item to the tracking queue.
 	/// </summary>
 	/// <param name="telemetry">The telemetry item to add.</param>
 	public void Add(Telemetry telemetry)
 	{
-		if (telemetry == null)
-		{
-			return;
-		}
-
 		items.Enqueue(telemetry);
 	}
 
@@ -200,17 +175,16 @@ public sealed class TelemetryTracker
 		String message,
 		TimeSpan duration,
 		Boolean success,
-		String runLocation = null,
-		KeyValuePair<String, Double>[] measurements = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		String? runLocation = null,
+		KeyValuePair<String, Double>[]? measurements = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
-		var telemetry = new AvailabilityTelemetry(time, id, name, message)
+		var telemetry = new AvailabilityTelemetry(Operation, time, id, name, message)
 		{
 			Duration = duration,
 			Measurements = measurements,
-			Operation = Operation,
 			Properties = properties,
 			RunLocation = runLocation,
 			Success = success,
@@ -241,20 +215,19 @@ public sealed class TelemetryTracker
 		Uri uri,
 		HttpStatusCode statusCode,
 		TimeSpan duration,
-		KeyValuePair<String, Double>[] measurements = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		KeyValuePair<String, Double>[]? measurements = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var name = String.Concat(httpMethod.Method, " ", uri.AbsolutePath);
 
 		var success = (Int32)statusCode is >= 200 and < 300;
 
-		var telemetry = new DependencyTelemetry(time, id, name)
+		var telemetry = new DependencyTelemetry(Operation, time, id, name)
 		{
 			Duration = duration,
 			Measurements = measurements,
-			Operation = Operation,
 			Properties = properties,
 			ResultCode = statusCode.ToString(),
 			Success = success,
@@ -287,19 +260,18 @@ public sealed class TelemetryTracker
 		String name,
 		Boolean success,
 		TimeSpan duration,
-		String typeName = null,
-		KeyValuePair<String, Double>[] measurements = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		String? typeName = null,
+		KeyValuePair<String, Double>[]? measurements = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var type = String.IsNullOrWhiteSpace(typeName) ? DependencyType.InProc : DependencyType.InProc + " | " + typeName;
 
-		var telemetry = new DependencyTelemetry(time, id, name)
+		var telemetry = new DependencyTelemetry(Operation, time, id, name)
 		{
 			Duration = duration,
 			Measurements = measurements,
-			Operation = Operation,
 			Properties = properties,
 			Success = success,
 			Tags = tags,
@@ -320,17 +292,16 @@ public sealed class TelemetryTracker
 	public void TrackEvent
 	(
 		String name,
-		KeyValuePair<String, Double>[] measurements = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		KeyValuePair<String, Double>[]? measurements = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new EventTelemetry(time, name)
+		var telemetry = new EventTelemetry(Operation, time, name)
 		{
 			Measurements = measurements,
-			Operation = Operation,
 			Properties = properties,
 			Tags = tags
 		};
@@ -351,17 +322,16 @@ public sealed class TelemetryTracker
 	(
 		Exception exception,
 		SeverityLevel? severityLevel = null,
-		KeyValuePair<String, Double>[] measurements = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		KeyValuePair<String, Double>[]? measurements = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new ExceptionTelemetry(time, exception)
+		var telemetry = new ExceptionTelemetry(Operation, time, exception)
 		{
 			Measurements = measurements,
-			Operation = Operation,
 			Properties = properties,
 			SeverityLevel = severityLevel,
 			Tags = tags
@@ -385,21 +355,41 @@ public sealed class TelemetryTracker
 		String @namespace,
 		String name,
 		Double value,
-		MetricValueAggregation valueAggregation = null,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		MetricValueAggregation? valueAggregation = null,
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new MetricTelemetry(time, @namespace, name, value, valueAggregation)
+		var telemetry = new MetricTelemetry(Operation, time, @namespace, name, value, valueAggregation)
 		{
-			Operation = Operation,
 			Properties = properties,
 			Tags = tags
 		};
 
 		Add(telemetry);
+	}
+
+	/// <summary>
+	/// Tracks trace by creating an instance of <see cref="TraceTelemetry"/> and calling the <see cref="Add(Telemetry)"/> method.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public OperationContext TrackOperationBegin
+	(
+		String id,
+		String? name = null,
+		String? parentId = null,
+		String? syntheticSource = null
+	)
+	{
+		// save current operation
+		var result = Operation;
+
+		// replace with new
+		Operation = new OperationContext(id, name, parentId, syntheticSource);
+
+		return result;
 	}
 
 	/// <summary>
@@ -414,15 +404,14 @@ public sealed class TelemetryTracker
 	(
 		String message,
 		SeverityLevel severityLevel,
-		KeyValuePair<String, String>[] properties = null,
-		KeyValuePair<String, String>[] tags = null
+		KeyValuePair<String, String>[]? properties = null,
+		KeyValuePair<String, String>[]? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new TraceTelemetry(time, message, severityLevel)
+		var telemetry = new TraceTelemetry(Operation, time, message, severityLevel)
 		{
-			Operation = Operation,
 			Properties = properties,
 			Tags = tags
 		};
