@@ -148,36 +148,12 @@ resource Storage_storageAccounts_Default_queueServices_Default_queues_Commands_a
 }
 
 /* outputs */
-output resources object = {
-	Insights: {
-		components: {
-			AuthOff: {
-				properties: {
-					ingestionEndpoint:  getIngestionEndpoint(Insights_components_AuthOff.properties.ConnectionString)
-					instrumentationKey: Insights_components_AuthOff.properties.InstrumentationKey
-				}
-			}
-			AuthOn: {
-				properties: {
-					ingestionEndpoint: getIngestionEndpoint(Insights_components_AuthOn.properties.ConnectionString)
-					instrumentationKey: Insights_components_AuthOn.properties.InstrumentationKey
-				}
-			}
-		}
-	}
-	Storage: {
-		storageAccounts: {
-			Default: {
-				name: Storage_storageAccounts_Default.name
-				properties: {
-					primaryEndpoints: {
-						queue: Storage_storageAccounts_Default.properties.primaryEndpoints.queue
-					}
-				}
-			}
-		}
-	}
-}
+
+output insightsAuthOffIngestionEndpoint string = getIngestionEndpoint(Insights_components_AuthOff.properties.ConnectionString)
+output insightsAuthOffInstrumentationKey string = Insights_components_AuthOff.properties.InstrumentationKey
+output insightsAuthOnIngestionEndpoint string = getIngestionEndpoint(Insights_components_AuthOn.properties.ConnectionString)
+output insightsAuthOnInstrumentationKey string = Insights_components_AuthOn.properties.InstrumentationKey
+output storageDefaultQueueEndpoint string = Storage_storageAccounts_Default.properties.primaryEndpoints.queue
 
 /* functions */
 

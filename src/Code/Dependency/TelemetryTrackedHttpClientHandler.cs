@@ -4,7 +4,6 @@
 namespace Azure.Monitor.Telemetry.Dependency;
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +36,6 @@ public class TelemetryTrackedHttpClientHandler
 	/// <exception cref="ArgumentNullException"> when <paramref name="telemetryTracker"/> is null.</exception>
 	private readonly TelemetryTracker telemetryTracker = telemetryTracker ?? throw new ArgumentNullException(nameof(telemetryTracker));
 
-	[ExcludeFromCodeCoverage]
 	/// <inheritdoc/>
 	protected override async Task<HttpResponseMessage> SendAsync
 	(

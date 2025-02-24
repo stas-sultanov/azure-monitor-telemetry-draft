@@ -32,14 +32,44 @@ public sealed class TelemetryTracker
 	/// <summary>
 	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
 	/// </summary>
+	/// <param name="telemetryPublisher">A telemetry publisher to publish the telemetry data.</param>
 	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
-	/// <param name="telemetryPublishers">An array of telemetry publishers to publish the telemetry data.</param>
+	/// <exception cref="ArgumentNullException">If <paramref name="telemetryPublisher"/> is null.</exception>
+	/// <exception cref="ArgumentException">If <paramref name="tags"/> contains an item which key or value is null or whitespace.</exception>
 	public TelemetryTracker
 	(
-		KeyValuePair<String, String>[] tags = null,
-		params TelemetryPublisher[] telemetryPublishers
+		TelemetryPublisher telemetryPublisher,
+		KeyValuePair<String, String>[] tags = null
 	)
+		: this([telemetryPublisher], tags)
 	{
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
+	/// </summary>
+	/// <param name="telemetryPublishers">An array of telemetry publishers to publish the telemetry data.</param>
+	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
+	/// <exception cref="ArgumentNullException">If <paramref name="telemetryPublishers"/> is null.</exception>
+	/// <exception cref="ArgumentException">If <paramref name="telemetryPublishers"/> contains null.</exception>
+	/// <exception cref="ArgumentException">If <paramref name="tags"/> contains an item which key or value is null or whitespace.</exception>
+	public TelemetryTracker
+	(
+		TelemetryPublisher[] telemetryPublishers,
+		KeyValuePair<String, String>[] tags = null)
+	{
+		this.telemetryPublishers = telemetryPublishers ?? throw new ArgumentNullException(nameof(telemetryPublishers));
+
+		for (var index = 0; index < telemetryPublishers.Length; index++)
+		{
+			var telemetryPublisher = telemetryPublishers[index];
+
+			if (telemetryPublisher == null)
+			{
+				throw new ArgumentException("Contains null", nameof(telemetryPublishers));
+			}
+		}
+
 		if (tags != null)
 		{
 			for (var index = 0; index < tags.Length; index++)
@@ -59,8 +89,6 @@ public sealed class TelemetryTracker
 		}
 
 		this.tags = tags;
-
-		this.telemetryPublishers = telemetryPublishers;
 
 		items = new();
 

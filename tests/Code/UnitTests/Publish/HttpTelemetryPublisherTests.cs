@@ -3,6 +3,7 @@
 
 namespace Azure.Monitor.Telemetry.UnitTests;
 
+using System;
 using System.Net.Http;
 
 using Azure.Monitor.Telemetry;
@@ -21,7 +22,7 @@ public sealed partial class HttpTelemetryPublisherTests
 
 	#endregion
 
-	#region Tests
+	#region Methods: Tests
 
 	[TestMethod]
 	public void Constructor_ThrowsArgumentNullException_IfHttpClientIsNull()
@@ -31,9 +32,9 @@ public sealed partial class HttpTelemetryPublisherTests
 		var instrumentationKey = Guid.NewGuid();
 
 		// exception type
-		var argumentNullException = Assert.ThrowsException<ArgumentNullException>
+		var argumentNullException = Assert.ThrowsExactly<ArgumentNullException>
 		(
-			() => _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
 		);
 
 		// parameter name
@@ -41,16 +42,16 @@ public sealed partial class HttpTelemetryPublisherTests
 	}
 
 	[TestMethod]
-	public void Constructor_ThrowsArgumentNullException_WhenIngestionEndpointIsNull()
+	public void Constructor_ThrowsArgumentNullException_IfIngestionEndpointIsNull()
 	{
 		using var httpClient = new HttpClient();
 		Uri ingestionEndpoint = null;
 		var instrumentationKey = Guid.NewGuid();
 
 		// exception type
-		var argumentNullException = Assert.ThrowsException<ArgumentNullException>
+		var argumentNullException = Assert.ThrowsExactly<ArgumentNullException>
 		(
-			() => _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
 		);
 
 		// parameter name
@@ -58,16 +59,16 @@ public sealed partial class HttpTelemetryPublisherTests
 	}
 
 	[TestMethod]
-	public void Constructor_ThrowsArgumentException_WhenIngestionEndpointIsInvalid()
+	public void Constructor_ThrowsArgumentException_IfIngestionEndpointIsInvalid()
 	{
 		using var httpClient = new HttpClient();
 		var ingestionEndpoint = new Uri("file://example.com");
 		var instrumentationKey = Guid.NewGuid();
 
 		// exception type
-		var argumentNullException = Assert.ThrowsException<ArgumentException>
+		var argumentNullException = Assert.ThrowsExactly<ArgumentException>
 		(
-			() => _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
 		);
 
 		// parameter name
@@ -75,20 +76,77 @@ public sealed partial class HttpTelemetryPublisherTests
 	}
 
 	[TestMethod]
-	public void Constructor_ThrowsArgumentException_WhenInstrumentationKeyIsEmpty()
+	public void Constructor_ThrowsArgumentException_IfInstrumentationKeyIsEmpty()
 	{
 		var httpClient = new HttpClient();
 		var ingestionEndpoint = new Uri(mockValidIngestEndpoint);
 		var instrumentationKey = Guid.Empty;
 
 		// exception type
-		var argumentNullException = Assert.ThrowsException<ArgumentException>
+		var argumentNullException = Assert.ThrowsExactly<ArgumentException>
 		(
-			() => _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey)
 		);
 
 		// parameter name
 		Assert.AreEqual(nameof(instrumentationKey), argumentNullException.ParamName);
+	}
+
+	[TestMethod]
+	public void Constructor_ThrowsArgumentException_IfTagsKeyOrValueIsNullOrWhiteSpace()
+	{
+		// arrange
+		var httpClient = new HttpClient();
+		var ingestionEndpoint = new Uri(mockValidIngestEndpoint);
+		var instrumentationKey =  Guid.NewGuid();
+
+		// act
+		var exception0 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new(null, "value")])
+		);
+
+		Assert.AreEqual("tags", exception0.ParamName);
+
+		// act
+		var exception1 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new("", "value")])
+		);
+
+		Assert.AreEqual("tags", exception1.ParamName);
+
+		// act
+		var exception2 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new("     ", "value")])
+		);
+
+		Assert.AreEqual("tags", exception2.ParamName);
+
+		// act
+		var exception3 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new("key", null)])
+		);
+
+		Assert.AreEqual("tags", exception3.ParamName);
+
+		// act
+		var exception4 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new("key", "")])
+		);
+
+		Assert.AreEqual("tags", exception4.ParamName);
+
+		// act
+		var exception5 = Assert.ThrowsExactly<ArgumentException>
+		(
+			() => _ = _ = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: [ new("key", "    ")])
+		);
+
+		Assert.AreEqual("tags", exception5.ParamName);
 	}
 
 	[TestMethod]
@@ -129,7 +187,7 @@ public sealed partial class HttpTelemetryPublisherTests
 			return Task.FromResult(new BearerToken("token " + HttpTelemetryPublisher.AuthorizationScopes, DateTimeOffset.UtcNow));
 		}
 
-		var publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, getAccessToken);
+		var publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, getAccessToken, [new (TelemetryTagKey.SessionId, "test"), new (TelemetryTagKey.InternalAgentVersion, "test") ]);
 
 		var telemetryList = new[] { new TraceTelemetry(DateTime.UtcNow, @"test", SeverityLevel.Information) };
 		var tags = Array.Empty<KeyValuePair<String, String>>();
