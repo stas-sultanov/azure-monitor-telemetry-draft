@@ -221,12 +221,6 @@ jobs:
         inlineScript: |
           az group delete -n ${{ env.AZURE_RESOURCE_GROUP_NAME }} -y
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.TESTS_ARTIFACT_NAME }}-results-integration
-        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
-
     - name: Publish Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       if: always()
