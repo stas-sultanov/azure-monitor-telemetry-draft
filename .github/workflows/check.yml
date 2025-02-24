@@ -138,7 +138,7 @@ jobs:
       # Name of the Azure data center where to deploy resources for integration tests
       AZURE_DATACENTER_NAME: eastus
       # Name of the Azure resource group to deploy resources for integration tests
-      AZURE_RESOURCE_GROUP_NAME: github-${{ github.repository }}
+      AZURE_RESOURCE_GROUP_NAME: github-azure-monitor-telemetry
       # Name of the Azure resource group to deploy resources for integration tests
       AZURE_RESOURCE_NAME_PREFIX: ${{ github.run_id }}
       # Path to the test results directory relative to the root of the project.
