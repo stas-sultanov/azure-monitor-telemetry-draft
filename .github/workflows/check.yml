@@ -200,12 +200,8 @@ jobs:
         subscriptionId: ${{ vars.AZURE_SUBSCRIPTIONS_DEV_ID }}
         scope: resourcegroup
         template: ./infrastructure.bicep
-
-    - run: echo ${{ steps.deploy.outputs }}
-
-    - run: echo ${{ steps.deploy.outputs.resources }}
-
-    - run: echo ${{ steps.deploy.outputs.resources.value }}
+        deploymentMode: Complete
+        deploymentName: ${{ github.run_number }}
 
     - name: Run Tests
       run: >-
@@ -216,11 +212,11 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
         --
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOff.properties.ingestionEndpoint }}\"\)
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.InstrumentationKey\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOff.properties.instrumentationKey }}\"\)
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOn.properties.ingestionEndpoint }}\"\)
-        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.InstrumentationKey\", value=\"${{ steps.deploy.outputs.resources.value.Insights.components.AuthOn.properties.instrumentationKey }}\"\)
-        TestRunParameters.Parameter\(name=\"Azure.Queue.Default.ServiceUri\", value=\"${{ steps.deploy.outputs.resources.value.Storage.storageAccounts.Default.properties.primaryEndpoints.queue }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.insightsAuthOffIngestionEndpoint }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOff.InstrumentationKey\", value=\"${{ steps.deploy.outputs.insightsAuthOffInstrumentationKey }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.IngestionEndpoint\", value=\"${{ steps.deploy.outputs.insightsAuthOnIngestionEndpoint }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Monitor.AuthOn.InstrumentationKey\", value=\"${{ steps.deploy.outputs.insightsAuthOnInstrumentationKey }}\"\)
+        TestRunParameters.Parameter\(name=\"Azure.Queue.Default.ServiceUri\", value=\"${{ steps.deploy.outputs.storageDefaultQueueEndpoint }}\"\)
 
     - name: Delete Azure Resources
       uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd #v2.1.0
