@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 /// - publish telemetry data into two instances of AppInsights; one with auth, one without auth.
 /// - test dependency tracking with <see cref="TelemetryTrackedHttpClientHandler"/>.
 /// </summary>
+[TestCategory("IntegrationTests")]
 [TestClass]
 public sealed class DependencyTrackingTests : AzureIntegrationTestsBase
 {

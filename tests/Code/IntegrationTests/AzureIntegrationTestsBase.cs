@@ -3,6 +3,7 @@
 
 namespace Azure.Monitor.Telemetry.IntegrationTests;
 
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -33,7 +34,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 	protected TelemetryTracker TelemetryTracker { get; }
 
-	protected ChainedTokenCredential TokenCredential { get; }
+	protected DefaultAzureCredential TokenCredential { get; }
 
 	#endregion
 
@@ -54,15 +55,15 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 		TestContext = testContext;
 
 		// create token credential
-		TokenCredential = new ChainedTokenCredential
-		(
-			// to authenticate developer within the IDE
-			new VisualStudioCredential(),
-			// to authenticate developer within the IDE
-			new VisualStudioCodeCredential(),
-			// to authenticate workflow within the agent
-			new AzureCliCredential()
-		);
+		TokenCredential = new DefaultAzureCredential(false);
+		//(
+		//	// to authenticate developer within the IDE
+		//	new VisualStudioCredential(),
+		//	// to authenticate developer within the IDE
+		//	new VisualStudioCodeCredential(),
+		//	// to authenticate workflow within the agent
+		//	new AzureCliCredential()
+		//);
 
 		httpClient = new HttpClient();
 
@@ -76,7 +77,7 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 
 			TelemetryPublisher publisher;
 
-			if (config.Item2)
+			if (!config.Item2)
 			{
 				publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, tags: publisherTags);
 			}
@@ -105,7 +106,14 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			new (TelemetryTagKey.CloudRoleInstance, Environment.MachineName)
 		];
 
-		TelemetryTracker = new TelemetryTracker([.. extraTrackerTags, .. trackerTags], [.. telemetryPublishers]);
+		TelemetryTracker = new TelemetryTracker([.. extraTrackerTags, .. trackerTags], [.. telemetryPublishers])
+		{
+			Operation = new OperationContext()
+			{
+				Name = $"TEST #{DateTime.UtcNow:yyMMddHHmm}",
+				Id = ActivityTraceId.CreateRandom().ToString()
+			}
+		};
 	}
 
 	#endregion
