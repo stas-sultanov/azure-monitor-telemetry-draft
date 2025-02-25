@@ -13,10 +13,10 @@ namespace Azure.Monitor.Telemetry;
 /// - Azure storage operations
 /// - Custom dependencies
 /// </remarks>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the dependency call was initiated.</param>
 /// <param name="id">The unique identifier.</param>
-/// <param name="name">The name of the command initiated with this dependency call.</param>
+/// <param name="name">The name of the command initiated the dependency call.</param>
 public sealed class DependencyTelemetry
 (
 	OperationContext operation,
@@ -54,7 +54,7 @@ public sealed class DependencyTelemetry
 	public KeyValuePair<String, Double>[]? Measurements { get; init; }
 
 	/// <summary>
-	/// The name of the command initiated with this dependency call.
+	/// The name of the command initiated the dependency call.
 	/// </summary>
 	public String Name { get; } = name;
 

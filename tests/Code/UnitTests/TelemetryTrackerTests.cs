@@ -30,7 +30,7 @@ public sealed class TelemetryTrackerTests
 
 	#endregion
 
-	#region Methos: Tests Constructors
+	#region Methods: Tests Constructors
 
 	[TestMethod]
 	public void Constructor()
@@ -155,25 +155,30 @@ public sealed class TelemetryTrackerTests
 		// arrange
 		var telemetryPublisher = new HttpTelemetryPublisherMock();
 		var telemetryTracker = new TelemetryTracker(telemetryPublisher, operation);
-		var id = "test-id";
+		var expectedId = Guid.NewGuid().ToString();
 		var name = "name";
 		var typeName = "Service";
-		var time = DateTime.UtcNow;
 		var duration = TimeSpan.FromSeconds(1);
 		var success = true;
 
 		// act
-		telemetryTracker.TrackDependencyInProc(time, id, name, success, duration, typeName, measurements, properties, tags);
+		var expectedParentId = telemetryTracker.Operation.ParentId;
+		telemetryTracker.TrackDependencyInProcBegin(() => expectedId, out var previousParentId, out var time, out var id);
+		telemetryTracker.TrackDependencyInProcEnd(previousParentId, time, id, name, success, duration, typeName, measurements, properties, tags);
+		var actualParentId = telemetryTracker.Operation.ParentId;
+
 		telemetryTracker.PublishAsync().Wait();
 		var actualResult = telemetryPublisher.Buffer.First() as DependencyTelemetry;
 		var type = DependencyType.InProc + " | " + typeName;
 
 		// assert
+		Assert.AreEqual(expectedParentId, actualParentId, "Operation.ParentId");
+
 		Assert.IsNotNull(actualResult);
 
 		AssertHelpers.PropertiesAreEqual(actualResult, operation, properties, tags);
 
-		AssertHelpers.PropertiesAreEqual(actualResult, null, duration, id, measurements, name, null, true, null, type);
+		AssertHelpers.PropertiesAreEqual(actualResult, null, duration, expectedId, measurements, name, null, true, null, type);
 	}
 
 	[TestMethod]
@@ -246,6 +251,38 @@ public sealed class TelemetryTrackerTests
 		AssertHelpers.PropertiesAreEqual(actualResult, operation, properties, tags);
 
 		AssertHelpers.PropertiesAreEqual(actualResult, name, @namespace, value, valueAggregation);
+	}
+
+	[TestMethod]
+	public void Method_TrackRequest()
+	{
+		// arrange
+		var telemetryPublisher = new HttpTelemetryPublisherMock();
+		var telemetryTracker = new TelemetryTracker(telemetryPublisher, operation);
+		var expectedId = Guid.NewGuid().ToString();
+		var url = new Uri("tst:exe");
+		var responseCode = "1";
+		var name = "name";
+		var duration = TimeSpan.FromSeconds(1);
+		var success = true;
+
+		// act
+		var expectedParentId = telemetryTracker.Operation.ParentId;
+		telemetryTracker.TrackRequestBegin(() => expectedId, out var previousParentId, out var time, out var id);
+		telemetryTracker.TrackRequestEnd(previousParentId, time, id, url, responseCode, success, duration, name, measurements, properties, tags);
+		var actualParentId = telemetryTracker.Operation.ParentId;
+
+		telemetryTracker.PublishAsync().Wait();
+		var actualResult = telemetryPublisher.Buffer.First() as RequestTelemetry;
+
+		// assert
+		Assert.AreEqual(expectedParentId, actualParentId, "Operation.ParentId");
+
+		Assert.IsNotNull(actualResult);
+
+		AssertHelpers.PropertiesAreEqual(actualResult, operation, properties, tags);
+
+		AssertHelpers.PropertiesAreEqual(actualResult, duration, expectedId, measurements, name, responseCode, success, url);
 	}
 
 	[TestMethod]

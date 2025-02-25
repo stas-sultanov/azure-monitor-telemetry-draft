@@ -3,7 +3,6 @@
 
 namespace Azure.Monitor.Telemetry.UnitTests;
 
-using System;
 using System.Net.Http;
 
 using Azure.Monitor.Telemetry.Dependency;

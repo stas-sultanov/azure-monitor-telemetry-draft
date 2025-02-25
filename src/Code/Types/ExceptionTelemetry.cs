@@ -9,7 +9,7 @@ namespace Azure.Monitor.Telemetry;
 /// This class is used to track and report exceptions in the application, including their stack traces
 /// and other relevant details. The maximum length of the stack trace is limited to 32768 characters.
 /// </remarks>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the exception has occurred.</param>
 /// <param name="exception">The exception object.</param>
 public sealed class ExceptionTelemetry

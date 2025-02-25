@@ -9,7 +9,7 @@ namespace Azure.Monitor.Telemetry;
 /// <remarks>
 /// Every request execution is identified by a unique <see cref="Id"/> and <see cref="Url"/> that contain all the execution parameters.
 /// </remarks>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the request was initiated.</param>
 /// <param name="id">The unique identifier.</param>
 /// <param name="url">The request url.</param>

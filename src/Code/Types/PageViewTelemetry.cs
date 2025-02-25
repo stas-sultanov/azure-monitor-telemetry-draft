@@ -9,7 +9,7 @@ namespace Azure.Monitor.Telemetry;
 /// <remarks>
 /// The page is a logical unit that is defined by the developer to be an application tab or a screen.
 /// </remarks>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the operation was initiated.</param>
 /// <param name="id">The unique identifier.</param>
 /// <param name="name">The name of the page.</param>
