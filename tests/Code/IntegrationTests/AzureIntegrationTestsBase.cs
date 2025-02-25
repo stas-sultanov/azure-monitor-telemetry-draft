@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 
 using Azure.Core;
 using Azure.Identity;
@@ -57,6 +58,10 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 		// create token credential
 		TokenCredential = new DefaultAzureCredential();
 
+		var tokenRequestContext = new TokenRequestContext(HttpTelemetryPublisher.AuthorizationScopes);
+
+		var token = TokenCredential.GetTokenAsync(tokenRequestContext, CancellationToken.None).Result;
+
 		httpClient = new HttpClient();
 
 		var telemetryPublishers = new List<TelemetryPublisher>();
@@ -81,15 +86,11 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 			}
 			else
 			{
-				async Task<BearerToken> getAccessToken(CancellationToken cancellationToken)
+				Task<BearerToken> getAccessToken(CancellationToken cancellationToken)
 				{
-					var tokenRequestContext = new TokenRequestContext(HttpTelemetryPublisher.AuthorizationScopes);
-
-					var token = await TokenCredential.GetTokenAsync(tokenRequestContext, cancellationToken);
-
 					var result = new BearerToken(token.Token, token.ExpiresOn);
 
-					return result;
+					return Task.FromResult(result);
 				}
 
 				publisher = new HttpTelemetryPublisher(httpClient, ingestionEndpoint, instrumentationKey, getAccessToken, publisherTags);
@@ -124,6 +125,11 @@ public abstract class AzureIntegrationTestsBase : IDisposable
 	#endregion
 
 	#region Methods
+
+	protected static String GettTraceId()
+	{
+		return ActivityTraceId.CreateRandom().ToString();
+	}
 
 	protected static void AssertStandardSuccess(TelemetryPublishResult[] telemetryPublishResults)
 	{

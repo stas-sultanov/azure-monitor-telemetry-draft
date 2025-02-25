@@ -6,7 +6,7 @@ namespace Azure.Monitor.Telemetry;
 /// <summary>
 /// Represents printf-style trace statements that are text searched.
 /// </summary>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the trace has occurred.</param>
 /// <param name="message">The message.</param>
 /// <param name="severityLevel">The severity level.</param>

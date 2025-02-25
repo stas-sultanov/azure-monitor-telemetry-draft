@@ -6,7 +6,7 @@ namespace Azure.Monitor.Telemetry;
 /// <summary>
 /// Represents telemetry of an availability test.
 /// </summary>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the test was initiated.</param>
 /// <param name="id">The unique identifier.</param>
 /// <param name="name">The name of the telemetry instance.</param>
@@ -59,7 +59,7 @@ public sealed class AvailabilityTelemetry
 	public KeyValuePair<String, String>[]? Properties { get; init; }
 
 	/// <summary>
-	/// Location from where the operation has been performed.
+	/// Location from where the test has been performed.
 	/// </summary>
 	public String? RunLocation { get; init; }
 

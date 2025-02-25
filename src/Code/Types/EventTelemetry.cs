@@ -12,7 +12,7 @@ namespace Azure.Monitor.Telemetry;
 /// Semantically, events might or might not be correlated to requests.
 /// If used properly, event telemetry is more important than requests or traces.
 /// </remarks>
-/// <param name="operation">The destributed operation context.</param>
+/// <param name="operation">The distributed operation context.</param>
 /// <param name="time">The UTC timestamp when the event has occurred.</param>
 /// <param name="name">The name.</param>
 public sealed class EventTelemetry
