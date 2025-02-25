@@ -33,10 +33,11 @@ Well, there are several compelling reasons why the author chose to invest life t
 - [Microsoft.ApplicationInsights][MSAppInsigthsNuget2_23] does not reference NET462 directly, which support end on [12 Jan 2027][NETLifeCycle].<br/>
   The Microsoft library references NET452 and NET46 which support ended on [26 Apr 2022][NETLifeCycle].
 - [Microsoft.ApplicationInsights][MSAppInsigthsNuget2_23] considered for deprecation.<br/>
-  As for Dec 2024 Microsoft recommends switching to [Azure Monitor OpenTelemetry Distro](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable).
+  As for Dec 2024 Microsoft recommends switching to Azure Monitor [OpenTelemetry](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable) Distro.
 - The [OpenTelemetry][OpenTelemetry] is not designed to be used for plugins development.<br/>
   The library heavily rely on use of static data which does not implement thread safe singleton pattern.
 - Both [Microsoft.ApplicationInsights][MSAppInsigthsNuget2_23] and [OpenTelemetry][OpenTelemetry] are extremely heavy in some applications like NET462.<br/>
+  This increases memory consumption and time to start.<br/>
   Take a look at the [comparison](#libraries-size-comparison).
 
 ### Libraries Size Comparison
