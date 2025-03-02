@@ -100,7 +100,7 @@ jobs:
         subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
 
     - name: Publish Package to GitHub
-      if: ${{ inputs.pushToNuGet }}
+      if: ${{ inputs.pushToGitHub }}
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${GITHUB_TOKEN}
