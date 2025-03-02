@@ -1,62 +1,45 @@
 ﻿// Created by Stas Sultanov.
 // Copyright © Stas Sultanov.
 
-namespace Azure.Monitor.Telemetry;
+namespace Azure.Monitor.Telemetry.Types;
 
 /// <summary>
 /// Represents telemetry of an availability test.
 /// </summary>
-/// <param name="operation">The distributed operation context.</param>
-/// <param name="time">The UTC timestamp when the test was initiated.</param>
-/// <param name="id">The unique identifier.</param>
-/// <param name="name">The name of the telemetry instance.</param>
-/// <param name="message">The message associated with the telemetry instance.</param>
-public sealed class AvailabilityTelemetry
-(
-	OperationContext operation,
-	DateTime time,
-	String id,
-	String name,
-	String message
-)
-	: Telemetry
+public sealed class AvailabilityTelemetry : ActivityTelemetry
 {
 	#region Properties
 
-	/// <summary>
-	/// The time taken to complete the test.
-	/// </summary>
-	public TimeSpan Duration { get; init; }
+	/// <inheritdoc/>
+	public required TimeSpan Duration { get; init; }
+
+	/// <inheritdoc/>
+	public required String Id { get; init; }
 
 	/// <summary>
-	/// The unique identifier.
-	/// </summary>
-	public String Id { get; } = id;
-
-	/// <summary>
-	/// A collection of measurements.
+	/// A read-only list of measurements.
 	/// </summary>
 	/// <remarks>
 	/// Maximum key length: 150 characters.
 	/// Is null by default.
 	/// </remarks>
-	public KeyValuePair<String, Double>[]? Measurements { get; init; }
+	public IReadOnlyList<KeyValuePair<String, Double>>? Measurements { get; init; }
 
 	/// <summary>
 	/// The message.
 	/// </summary>
-	public String Message { get; } = message;
+	public required String Message { get; init; }
 
 	/// <summary>
 	/// The name.
 	/// </summary>
-	public String Name { get; } = name;
+	public required String Name { get; init; }
 
 	/// <inheritdoc/>
-	public OperationContext Operation { get; } = operation;
+	public required TelemetryOperation Operation { get; init; }
 
 	/// <inheritdoc/>
-	public KeyValuePair<String, String>[]? Properties { get; init; }
+	public IReadOnlyList<KeyValuePair<String, String>>? Properties { get; init; }
 
 	/// <summary>
 	/// Location from where the test has been performed.
@@ -66,15 +49,15 @@ public sealed class AvailabilityTelemetry
 	/// <summary>
 	/// A value indicating whether the operation was successful or unsuccessful.
 	/// </summary>
-	public Boolean Success { get; init; }
+	public required Boolean Success { get; init; }
 
 	/// <inheritdoc/>
-	public KeyValuePair<String, String>[]? Tags { get; init; }
+	public IReadOnlyList<KeyValuePair<String, String>>? Tags { get; init; }
 
 	/// <summary>
 	/// The UTC timestamp when the test was initiated.
 	/// </summary>
-	public DateTime Time { get; } = time;
+	public required DateTime Time { get; init; }
 
 	#endregion
 }

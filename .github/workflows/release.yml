@@ -1,4 +1,4 @@
-# The workflow to compile main project and pack it as NuGet package.
+# The workflow to release the library.
 
 name: Publish
 
@@ -14,9 +14,14 @@ on:
         description: Is pre-release
         required: true
         type: boolean
-      push:
+      pushToGitHub:
         default: false
-        description: Push to nuget.org
+        description: Push to GitHub.com
+        required: true
+        type: boolean
+      pushToNuGet:
+        default: false
+        description: Push to NuGet.org
         required: true
         type: boolean
 
@@ -87,13 +92,22 @@ jobs:
       with:
         subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
 
-    - name: Publish Package
-      if: ${{ inputs.push }}
+    - name: Publish Package to GitHub
+      if: ${{ inputs.pushToNuGet }}
+      run: >-
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
+        --api-key ${GITHUB_TOKEN}
+        --source https://nuget.pkg.github.com/stas-sultanov/index.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish Package to NuGet
+      if: ${{ inputs.pushToNuGet }}
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
         --source ${{ vars.NUGET_API_URL }}
-      
+
     - name: Upload Package
       uses: actions/upload-artifact@v4
       with:

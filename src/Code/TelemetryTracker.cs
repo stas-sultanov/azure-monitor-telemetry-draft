@@ -3,28 +3,36 @@
 
 namespace Azure.Monitor.Telemetry;
 
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 
+using Azure.Monitor.Telemetry.Types;
+
 /// <summary>
-/// Providing functionality to collect and publish telemetry items.
+/// Provides functionality to collect and publish telemetry data.
 /// </summary>
 /// <remarks>
-/// Provides thread-safe collection of telemetry items and supports batch publishing through configured telemetry publishers.
-/// Allows specifying common tags that will be attached to each telemetry item during publish operation.
+/// Utilizes <see cref="ConcurrentQueue{T}"/> to collect telemetry items and publish in a batch through configured telemetry publishers.
 /// </remarks>
+/// <param name="telemetryPublishers">A read only list of telemetry publishers to publish the telemetry data.</param>
+/// <param name="tags">A read-only list of tags to attach to each telemetry item. Is optional.</param>
 public sealed class TelemetryTracker
+(
+	IReadOnlyList<TelemetryPublisher> telemetryPublishers,
+	IReadOnlyList<KeyValuePair<String, String>>? tags = null
+)
 {
 	#region Fields
 
-	private static readonly TelemetryPublishResult[] emptySuccess = [];
-	private readonly ConcurrentQueue<Telemetry> items;
-	private readonly KeyValuePair<String, String>[]? tags;
-	private readonly AsyncLocal<OperationContext> operation;
-	private readonly OperationContext rootOperation;
-	private readonly TelemetryPublisher[] telemetryPublishers;
+	private static readonly TelemetryPublishResult[] emptyPublishResult = [];
+	private readonly ConcurrentQueue<Telemetry> items = new();
+	private readonly IReadOnlyList<KeyValuePair<String, String>>? tags = tags;
+	private readonly AsyncLocal<TelemetryOperation> operation = new();
+	private readonly IReadOnlyList<TelemetryPublisher> telemetryPublishers = telemetryPublishers;
 
 	#endregion
 
@@ -34,43 +42,14 @@ public sealed class TelemetryTracker
 	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
 	/// </summary>
 	/// <param name="telemetryPublisher">A telemetry publisher to publish the telemetry data.</param>
-	/// <param name="rootOperation">Root distributed operation. Is optional.</param>
-	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
+	/// <param name="tags">A read-only list of tags to attach to each telemetry item. Is optional.</param>
 	public TelemetryTracker
 	(
 		TelemetryPublisher telemetryPublisher,
-		OperationContext? rootOperation = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
-		: this([telemetryPublisher], rootOperation, tags)
+		: this([telemetryPublisher], tags)
 	{
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="TelemetryTracker"/> class.
-	/// </summary>
-	/// <param name="telemetryPublishers">An array of telemetry publishers to publish the telemetry data.</param>
-	/// <param name="rootOperation">Root distributed operation.</param>
-	/// <param name="tags">An array of tags to attach to each telemetry item. Is optional.</param>
-	public TelemetryTracker
-	(
-		TelemetryPublisher[] telemetryPublishers,
-		OperationContext? rootOperation = null,
-		KeyValuePair<String, String>[]? tags = null
-	)
-	{
-		this.telemetryPublishers = telemetryPublishers;
-
-		this.rootOperation = rootOperation ?? new OperationContext();
-
-		this.tags = tags;
-
-		items = new();
-
-		operation = new()
-		{
-			Value = this.rootOperation
-		};
 	}
 
 	#endregion
@@ -78,13 +57,13 @@ public sealed class TelemetryTracker
 	#region Properties
 
 	/// <summary>
-	/// An asynchronous local storage for the current telemetry operation.
+	/// The distributed operation stored in asynchronous local storage.
 	/// </summary>
-	public OperationContext Operation
+	public TelemetryOperation Operation
 	{
-		get => operation.Value ?? rootOperation;
+		get => operation.Value!;
 
-		private set => operation.Value = value;
+		set => operation.Value = value;
 	}
 
 	#endregion
@@ -92,23 +71,28 @@ public sealed class TelemetryTracker
 	#region Methods
 
 	/// <summary>
-	/// Adds a telemetry item to the tracking queue.
+	/// Adds a telemetry item into the tracking queue.
 	/// </summary>
 	/// <param name="telemetry">The telemetry item to add.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Add(Telemetry telemetry)
 	{
 		items.Enqueue(telemetry);
 	}
 
 	/// <summary>
-	/// Publishes all telemetry items in the queue using all configured telemetry publishers.
+	/// Publishes telemetry items asynchronously to all configured telemetry publishers.
 	/// </summary>
-	/// <param name="cancellationToken">Optional token to cancel the operation.</param>
-	/// <returns>An array of <see cref="TelemetryPublishResult"/> indicating the status for each configured publisher.</returns>
 	/// <remarks>
-	/// If the queue is empty, returns an empty success result array.
-	/// The method processes all items in the queue and publishes them in parallel to all configured publishers.
+	/// This method dequeues all telemetry items from the internal queue and publishes them to all configured 
+	/// telemetry publishers. If there are no items to publish, it returns an empty result array.
 	/// </remarks>
+	/// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains an array of 
+	/// <see cref="TelemetryPublishResult"/> indicating the result of the publish operation for each publisher.
+	/// </returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public async Task<TelemetryPublishResult[]> PublishAsync
 	(
 		CancellationToken cancellationToken = default
@@ -117,7 +101,7 @@ public sealed class TelemetryTracker
 		// check if there are any items to publish
 		if (items.IsEmpty)
 		{
-			return emptySuccess;
+			return emptyPublishResult;
 		}
 
 		// create a list to store telemetry items
@@ -131,10 +115,10 @@ public sealed class TelemetryTracker
 		}
 
 		// create a list to store publish results
-		var resultList = new Task<TelemetryPublishResult>[telemetryPublishers.Length];
+		var resultList = new Task<TelemetryPublishResult>[telemetryPublishers.Count];
 
 		// publish telemetry items to all configured senders
-		for (var publisherIndex = 0; publisherIndex < telemetryPublishers.Length; publisherIndex++)
+		for (var publisherIndex = 0; publisherIndex < telemetryPublishers.Count; publisherIndex++)
 		{
 			var sender = telemetryPublishers[publisherIndex];
 
@@ -149,243 +133,347 @@ public sealed class TelemetryTracker
 
 	#endregion
 
+	#region Methods: Scope
+
+	/// <summary>
+	/// Begins an activity scope.
+	/// </summary>
+	/// <remarks>
+	/// The method replaces <see cref="Operation"/> with new value where <see cref="TelemetryOperation.ParentId"/> is set to the <paramref name="activityId"/>.
+	/// All telemetry items tracked within the scope will have <paramref name="activityId"/> as parent activity identifier.
+	/// </remarks>
+	/// <param name="activityId">The activity unique identifier to use as parent for telemetry items tracked within the scope.</param>
+	/// <param name="operation">Outputs a value of <see cref="Operation"/> before it is replaced.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void ActivityScopeBegin
+	(
+		String activityId,
+		out TelemetryOperation operation
+	)
+	{
+		// get current operation
+		operation = Operation;
+
+		// replace operation with new parent activity id
+		Operation = new TelemetryOperation
+		{
+			Id = operation.Id,
+			Name = operation.Name,
+			ParentId = activityId
+		};
+	}
+
+	/// <summary>
+	/// Begins an activity scope.
+	/// </summary>
+	/// <remarks>
+	/// The method replaces value of <see cref="Operation"/> with new value where <see cref="TelemetryOperation.ParentId"/> is set to the <paramref name="activityId"/>.
+	/// All telemetry items tracked within the scope will have <paramref name="activityId"/> as parent activity identifier.
+	/// </remarks>
+	/// <param name="getActivityId">A function that returns a unique identifier for the activity.</param>
+	/// <param name="time">Outputs the UTC timestamp when the activity scope begins.</param>
+	/// <param name="timestamp">Outputs the timestamp to calculate the duration when the activity scope ends.</param>
+	/// <param name="activityId">Outputs the generated unique identifier for the activity.</param>
+	/// <param name="operation">Outputs a value of <see cref="Operation"/> before it is replaced.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void ActivityScopeBegin
+	(
+		Func<String> getActivityId,
+		out DateTime time,
+		out Int64 timestamp,
+		out String activityId,
+		out TelemetryOperation operation
+	)
+	{
+		// get time
+		time = DateTime.UtcNow;
+
+		// get timestamp to calculate duration on end
+		timestamp = Stopwatch.GetTimestamp();
+
+		// get id
+		activityId = getActivityId();
+
+		// call overload
+		ActivityScopeBegin(activityId, out operation);
+	}
+
+	/// <summary>
+	/// Ends the current activity scope.
+	/// </summary>
+	/// <remarks>
+	/// The method restores value of <see cref="Operation"/> with <paramref name="operation"/>.
+	/// </remarks>
+	/// <param name="operation">The telemetry operation to be restored.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void ActivityScopeEnd
+	(
+		TelemetryOperation operation
+	)
+	{
+		// bring back operation
+		Operation = operation;
+	}
+
+	/// <summary>
+	/// Ends the current activity scope and calculates duration of the activity.
+	/// </summary>
+	/// <remarks>
+	/// The method restores value of <see cref="Operation"/> with <paramref name="operation"/>.
+	/// </remarks>
+	/// <param name="operation">The telemetry operation that is being tracked.</param>
+	/// <param name="timestamp">The timestamp when the operation started.</param>
+	/// <param name="duration">The output parameter that will hold the duration of the operation.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void ActivityScopeEnd
+	(
+		TelemetryOperation operation,
+		Int64 timestamp,
+		out TimeSpan duration
+	)
+	{
+		// call overload
+		ActivityScopeEnd(operation);
+
+		// get timestamp to calculate duration
+		var endTimestamp = Stopwatch.GetTimestamp();
+
+		// calculate duration in ticks
+		var durationInTicks = (endTimestamp - timestamp) * TimeSpan.TicksPerSecond / Stopwatch.Frequency;
+
+		// set duration
+		duration = new TimeSpan(durationInTicks);
+	}
+
+	#endregion
+
 	#region Methods: Track
 
 	/// <summary>
-	/// Tracks availability test result.
+	/// Tracks an availability test activity.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="AvailabilityTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
-	/// <param name="time">The UTC timestamp when the test was initiated.</param>
-	/// <param name="id">The unique identifier.</param>
-	/// <param name="name">The name of the telemetry instance.</param>
-	/// <param name="message">The message associated with the telemetry instance.</param>
-	/// <param name="duration">The time taken to complete the test.</param>
-	/// <param name="success">A value indicating whether the operation was successful or unsuccessful.</param>
-	/// <param name="runLocation">Location from where the test has been performed.  Is optional.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	/// <param name="time">The UTC timestamp when the activity was initiated.</param>
+	/// <param name="duration">The time taken to complete the activity.</param>
+	/// <param name="id">The unique identifier of the activity.</param>
+	/// <param name="name">The name of the availability test.</param>
+	/// <param name="message">A message describing the result of the availability test.</param>
+	/// <param name="success">A boolean indicating whether the availability test was successful.</param>
+	/// <param name="runLocation">The location where the availability test was run. Optional.</param>
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackAvailability
 	(
 		DateTime time,
+		TimeSpan duration,
 		String id,
 		String name,
 		String message,
-		TimeSpan duration,
 		Boolean success,
 		String? runLocation = null,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
-		var telemetry = new AvailabilityTelemetry(Operation, time, id, name, message)
+		var telemetry = new AvailabilityTelemetry
 		{
 			Duration = duration,
+			Id = id,
 			Measurements = measurements,
+			Message = message,
+			Name = name,
+			Operation = Operation,
 			Properties = properties,
 			RunLocation = runLocation,
 			Success = success,
-			Tags = tags
+			Tags = tags,
+			Time = time
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Tracks dependency call.
+	/// Tracks a dependency call activity.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="DependencyTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
-	/// <param name="time">The UTC timestamp when the dependency call was initiated.</param>
-	/// <param name="id">The unique identifier.</param>
-	/// <param name="httpMethod">The HTTP method used for the dependency call.</param>
-	/// <param name="uri">The URI of the dependency call.</param>
-	/// <param name="statusCode">The HTTP status code returned by the dependency call.</param>
-	/// <param name="duration">The time taken to complete the dependency call.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	/// <param name="time">The UTC timestamp when the activity was initiated.</param>
+	/// <param name="duration">The time taken to complete the activity.</param>
+	/// <param name="id">The unique identifier of the activity.</param>
+	/// <param name="httpMethod">The HTTP method used in the operation.</param>
+	/// <param name="uri">The URI of the dependency.</param>
+	/// <param name="statusCode">The HTTP status code returned by the dependency.</param>
+	/// <param name="success">Indicates whether the dependency call was successful.</param>
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackDependency
 	(
 		DateTime time,
+		TimeSpan duration,
 		String id,
 		HttpMethod httpMethod,
 		Uri uri,
 		HttpStatusCode statusCode,
-		TimeSpan duration,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		Boolean success,
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
 		var name = String.Concat(httpMethod.Method, " ", uri.AbsolutePath);
 
-		var success = (Int32)statusCode is >= 200 and < 300;
-
-		var telemetry = new DependencyTelemetry(Operation, time, id, name)
+		var telemetry = new DependencyTelemetry
 		{
+			Data = uri.ToString(),
 			Duration = duration,
+			Id = id,
 			Measurements = measurements,
+			Name = name,
+			Operation = Operation,
 			Properties = properties,
 			ResultCode = statusCode.ToString(),
 			Success = success,
 			Tags = tags,
 			Target = uri.Host,
-			Type = DependencyType.DetectTypeFromHttp(uri),
-			Data = uri.ToString()
+			Type = uri.DetectDependencyTypeFromHttp(),
+			Time = time
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Begins tracking of an InProc dependency execution.
+	/// Tracks an in-proc dependency activity.
 	/// </summary>
 	/// <remarks>
-	/// Replaces the <see cref="Operation"/> with a new object with parentId obtained with <paramref name="getId"/> call.
-	/// In this way all subsequent telemetry will refer to the InProc dependency execution as parent operation.
-	/// </remarks>
-	/// <param name="getId">A function that returns the identifier for in-process dependency.</param>
-	/// <param name="previousParentId">The previous Operation parent identifier.</param>
-	/// <param name="time">The timestamp when the tracking hes begun.</param>
-	/// <param name="id">The generated identifier of in-process dependency.</param>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void TrackDependencyInProcBegin
-	(
-		Func<String> getId,
-		out String? previousParentId,
-		out DateTime time,
-		out String id
-	)
-	{
-		// set time
-		time = DateTime.UtcNow;
-
-		// get in-proc dependency id
-		id = getId();
-
-		// replace operation with in-proc dependency as parent id 
-		Operation = Operation.CloneWithNewParentId(id, out previousParentId);
-	}
-
-	/// <summary>
-	/// Ends tracking of the InProc dependency.
-	/// </summary>
-	/// <remarks>
-	/// Reverts back <see cref="Operation"/> as it was before calling <see cref="TrackDependencyInProcBegin(Func{String}, out String?, out DateTime, out String)"/>
 	/// Creates an instance of <see cref="DependencyTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
-	/// <param name="time">The UTC timestamp when the dependency call was initiated.</param>
-	/// <param name="id">The unique identifier.</param>
-	/// <param name="name">The name of the command initiated the dependency call.</param>
-	/// <param name="success">A value indicating whether the operation was successful or unsuccessful.</param>
-	/// <param name="duration">The time taken to complete the dependency call.</param>
-	/// <param name="typeName">The type name of the dependency. Is optional.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>
+	/// <param name="time">The UTC timestamp when the activity was initiated.</param>
+	/// <param name="duration">The time taken to complete the activity.</param>
+	/// <param name="id">The unique identifier of the activity.</param>
+	/// <param name="name">The name of the dependency operation.</param>
+	/// <param name="success">Indicates whether the operation was successful.</param>
+	/// <param name="typeName">The type name of the dependency operation. Optional.</param>
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void TrackDependencyInProcEnd
+	public void TrackDependencyInProc
 	(
-		String? previousParentId,
 		DateTime time,
+		TimeSpan duration,
 		String id,
 		String name,
 		Boolean success,
-		TimeSpan duration,
 		String? typeName = null,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
-		// replace operation with in-proc dependency as parent id 
-		Operation = Operation.CloneWithNewParentId(previousParentId);
-
 		var type = String.IsNullOrWhiteSpace(typeName) ? DependencyType.InProc : DependencyType.InProc + " | " + typeName;
 
-		var telemetry = new DependencyTelemetry(Operation, time, id, name)
+		var telemetry = new DependencyTelemetry
 		{
 			Duration = duration,
+			Id = id,
 			Measurements = measurements,
+			Name = name,
+			Operation = Operation,
 			Properties = properties,
 			Success = success,
 			Tags = tags,
-			Type = type
+			Type = type,
+			Time = time
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Tracks event.
+	/// Tracks an event.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="EventTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
 	/// <param name="name">The name.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackEvent
 	(
 		String name,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new EventTelemetry(Operation, time, name)
+		var telemetry = new EventTelemetry
 		{
 			Measurements = measurements,
+			Name = name,
+			Operation = Operation,
 			Properties = properties,
-			Tags = tags
+			Tags = tags,
+			Time = time
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Tracks exception.
+	/// Tracks an exception.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="ExceptionTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
 	/// <param name="exception">The exception to be tracked.</param>
 	/// <param name="severityLevel">The severity level of the exception. Is optional.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackException
 	(
 		Exception exception,
 		SeverityLevel? severityLevel = null,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new ExceptionTelemetry(Operation, time, exception)
+		var exceptions = exception.Convert();
+
+		var telemetry = new ExceptionTelemetry
 		{
+			Exceptions = exceptions,
 			Measurements = measurements,
+			Operation = Operation,
 			Properties = properties,
 			SeverityLevel = severityLevel,
-			Tags = tags
+			Tags = tags,
+			Time = time
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Tracks metric.
+	/// Tracks a metric.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="MetricTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
@@ -394,8 +482,8 @@ public sealed class TelemetryTracker
 	/// <param name="name">The name of the metric to be tracked.</param>
 	/// <param name="value">The value of the metric to be tracked.</param>
 	/// <param name="valueAggregation">The aggregation type of the metric. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackMetric
 	(
@@ -403,125 +491,148 @@ public sealed class TelemetryTracker
 		String name,
 		Double value,
 		MetricValueAggregation? valueAggregation = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new MetricTelemetry(Operation, time, @namespace, name, value, valueAggregation)
+		var telemetry = new MetricTelemetry
 		{
+			Namespace = @namespace,
+			Name = name,
+			Operation = Operation,
 			Properties = properties,
-			Tags = tags
+			Tags = tags,
+			Time = time,
+			Value = value,
+			ValueAggregation = valueAggregation
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Begins tracking of an request execution.
+	/// Tracks a page view activity.
 	/// </summary>
 	/// <remarks>
-	/// Replaces the <see cref="Operation"/> with a new object with parentId obtained with <paramref name="getId"/> call.
-	/// In this way all subsequent telemetry will refer to the request as parent operation.
+	/// Creates an instance of <see cref="PageViewTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
-	/// <param name="getId">A function that returns the identifier for request.</param>
-	/// <param name="previousParentId">The previous Operation parent identifier.</param>
-	/// <param name="time">The timestamp when the tracking hes begun.</param>
-	/// <param name="id">The generated identifier of in-process dependency.</param>
+	/// <param name="time">The UTC timestamp when the activity was initiated.</param>
+	/// <param name="duration">The time taken to complete the activity.</param>
+	/// <param name="id">The unique identifier of the activity.</param>
+	/// <param name="name">The name of the page view.</param>
+	/// <param name="url">The URL of the page view.</param>
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void TrackRequestBegin
+	public void TrackPageView
 	(
-		Func<String> getId,
-		out String? previousParentId,
-		out DateTime time,
-		out String id
+		DateTime time,
+		TimeSpan duration,
+		String id,
+		String name,
+		Uri url,
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
-		// set time
-		time = DateTime.UtcNow;
+		var telemetry = new PageViewTelemetry
+		{
+			Duration = duration,
+			Id = id,
+			Measurements = measurements,
+			Name = name,
+			Operation = Operation,
+			Properties = properties,
+			Tags = tags,
+			Time = time,
+			Url = url
+		};
 
-		// get in-proc dependency id
-		id = getId();
-
-		// replace operation with in-proc dependency as parent id 
-		Operation = Operation.CloneWithNewParentId(id, out previousParentId);
+		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Ends tracking of the request dependency.
+	/// Tracks a request activity.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="RequestTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
-	/// <param name="previousParentId">The identifier of previous parent to replace the operation's parent identifier with.</param>
-	/// <param name="time">The UTC timestamp when the request was initiated.</param>
-	/// <param name="id">The unique identifier.</param>
-	/// <param name="url">The request url.</param>
-	/// <param name="responseCode">The result of an operation execution.</param>
-	/// <param name="success">A value indicating whether the operation was successful or unsuccessful.</param>
-	/// <param name="duration">The time taken to complete.</param>
-	/// <param name="name">The name of the request. Is optional.</param>
-	/// <param name="measurements">An array of key-value pairs representing measurements associated with the telemetry. Is optional.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>
+	/// <param name="time">The UTC timestamp when the activity was initiated.</param>
+	/// <param name="duration">The time taken to complete the activity.</param>
+	/// <param name="id">The unique identifier of the activity.</param>
+	/// <param name="url">The URL of the request.</param>
+	/// <param name="responseCode">The response code of the request.</param>
+	/// <param name="success">Indicates whether the request was successful.</param>
+	/// <param name="name">Optional. The name of the request.</param>
+	/// <param name="measurements">A read-only list of measurements associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void TrackRequestEnd
+	public void TrackRequest
 	(
-		String? previousParentId,
 		DateTime time,
+		TimeSpan duration,
 		String id,
 		Uri url,
 		String responseCode,
 		Boolean success,
-		TimeSpan duration,
 		String? name = null,
-		KeyValuePair<String, Double>[]? measurements = null,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, Double>>? measurements = null,
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
-		// replace operation with in-proc dependency as parent id 
-		Operation = Operation.CloneWithNewParentId(previousParentId);
-
-		var telemetry = new RequestTelemetry(Operation, time, id, url, responseCode)
+		var telemetry = new RequestTelemetry
 		{
 			Duration = duration,
+			Id = id,
 			Measurements = measurements,
 			Name = name,
+			Operation = Operation,
 			Properties = properties,
+			ResponseCode = responseCode,
 			Success = success,
-			Tags = tags
+			Tags = tags,
+			Time = time,
+			Url = url
 		};
 
 		Add(telemetry);
 	}
 
 	/// <summary>
-	/// Tracks trace.
+	/// Tracks a trace.
 	/// </summary>
 	/// <remarks>
 	/// Creates an instance of <see cref="TraceTelemetry"/> using <see cref="Operation"/> and calls the <see cref="Add(Telemetry)"/> method.
 	/// </remarks>
 	/// <param name="message">The message.</param>
 	/// <param name="severityLevel">The severity level.</param>
-	/// <param name="properties">An array of key-value pairs representing properties associated with the telemetry. Is optional.</param>
-	/// <param name="tags">An array of key-value pairs representing tags associated with the telemetry. Is optional.</param>
+	/// <param name="properties">A read-only list of properties associated with the telemetry. Is optional.</param>
+	/// <param name="tags">A read-only list of tags associated with the telemetry. Is optional.</param>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void TrackTrace
 	(
 		String message,
 		SeverityLevel severityLevel,
-		KeyValuePair<String, String>[]? properties = null,
-		KeyValuePair<String, String>[]? tags = null
+		IReadOnlyList<KeyValuePair<String, String>>? properties = null,
+		IReadOnlyList<KeyValuePair<String, String>>? tags = null
 	)
 	{
 		var time = DateTime.UtcNow;
 
-		var telemetry = new TraceTelemetry(Operation, time, message, severityLevel)
+		var telemetry = new TraceTelemetry
 		{
+			Message = message,
+			Operation = Operation,
 			Properties = properties,
-			Tags = tags
+			SeverityLevel = severityLevel,
+			Tags = tags,
+			Time = time
 		};
 
 		Add(telemetry);

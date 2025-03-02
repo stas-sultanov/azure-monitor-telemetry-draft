@@ -1,7 +1,7 @@
 ﻿// Created by Stas Sultanov.
 // Copyright © Stas Sultanov.
 
-namespace Azure.Monitor.Telemetry;
+namespace Azure.Monitor.Telemetry.Types;
 
 /// <summary>
 /// Represents telemetry of a page view.
@@ -9,58 +9,43 @@ namespace Azure.Monitor.Telemetry;
 /// <remarks>
 /// The page is a logical unit that is defined by the developer to be an application tab or a screen.
 /// </remarks>
-/// <param name="operation">The distributed operation context.</param>
-/// <param name="time">The UTC timestamp when the operation was initiated.</param>
-/// <param name="id">The unique identifier.</param>
-/// <param name="name">The name of the page.</param>
-public sealed class PageViewTelemetry
-(
-	OperationContext operation,
-	DateTime time,
-	String id,
-	String name
-)
-	: Telemetry
+public sealed class PageViewTelemetry : ActivityTelemetry
 {
 	#region Properties
 
-	/// <summary>
-	/// The time taken to present the page to the user.
-	/// </summary>
+	/// <inheritdoc/>
 	public TimeSpan Duration { get; init; }
 
-	/// <summary>
-	/// The unique identifier.
-	/// </summary>
-	public String Id { get; } = id;
+	/// <inheritdoc/>
+	public required String Id { get; init; }
 
 	/// <summary>
-	/// A collection of measurements.
+	/// A read-only list of measurements.
 	/// </summary>
 	/// <remarks>
 	/// Maximum key length: 150 characters.
 	/// Is null by default.
 	/// </remarks>
-	public KeyValuePair<String, Double>[]? Measurements { get; init; }
+	public IReadOnlyList<KeyValuePair<String, Double>>? Measurements { get; init; }
 
 	/// <summary>
 	/// The name of the page.
 	/// </summary>
-	public String Name { get; } = name;
+	public required String Name { get; init; }
 
 	/// <inheritdoc/>
-	public OperationContext Operation { get; } = operation;
+	public required TelemetryOperation Operation { get; init; }
 
 	/// <inheritdoc/>
-	public KeyValuePair<String, String>[]? Properties { get; init; }
+	public IReadOnlyList<KeyValuePair<String, String>>? Properties { get; init; }
 
 	/// <inheritdoc/>
-	public KeyValuePair<String, String>[]? Tags { get; init; }
+	public IReadOnlyList<KeyValuePair<String, String>>? Tags { get; init; }
 
 	/// <summary>
-	/// The UTC timestamp when the operation was initiated.
+	/// The UTC timestamp when the page view was initiated.
 	/// </summary>
-	public DateTime Time { get; } = time;
+	public required DateTime Time { get; init; }
 
 	/// <summary>
 	/// The request URL.
