@@ -43,6 +43,8 @@ jobs:
       contents: read
       # Required by Attestation action to mint the OIDC token necessary to request a Sigstore signing certificate
       id-token: write
+      # Required to push the package to GitHub
+      packages: write
 
     # one of target frameworks is net462
     runs-on: windows-latest
