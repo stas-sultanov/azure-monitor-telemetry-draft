@@ -104,7 +104,7 @@ jobs:
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${GITHUB_TOKEN}
-        --source https://nuget.pkg.github.com/stas-sultanov/index.json
+        --source "github"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
