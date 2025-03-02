@@ -99,14 +99,18 @@ jobs:
       with:
         subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
 
+    - name: Setup .NET
+      if: ${{ inputs.pushToGitHub }}
+      uses: actions/setup-dotnet@v4
+      with:
+        source-url: https://nuget.pkg.github.com/stas-sultanov/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  
     - name: Publish Package to GitHub
       if: ${{ inputs.pushToGitHub }}
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
-        --api-key ${GITHUB_TOKEN}
-        --source "https://nuget.pkg.github.com/stas-sultanov/index.json"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish Package to NuGet
       if: ${{ inputs.pushToNuGet }}
