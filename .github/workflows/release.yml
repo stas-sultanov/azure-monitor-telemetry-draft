@@ -52,6 +52,8 @@ jobs:
       ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME: 'assembly.snk'
       # Configuration type to build.
       BUILD_CONFIGURATION_NAME: Release
+      # Flag to indicate if the version is pre-release.
+      IS_PRE_RELEASE: ${{ inputs.versionPreRelease != '' }}
       # Path to the project file relative to the root of the project.
       MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
       # Package identifier
@@ -59,7 +61,7 @@ jobs:
       # Package output directory path
       PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('Release {0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
+      PACKAGE_VERSION: ${{ format('{0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
@@ -92,7 +94,7 @@ jobs:
         -p:RepositoryUrl=${{ env.REPO_URL }}
 
     - name: Attest Package Provenance
-      if: ${{ !inputs.isPreRelease }}
+      if: ${{ !env.IS_PRE_RELEASE }}
       uses: actions/attest-build-provenance@v2
       with:
         subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
