@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<AnalysisLevel>latest-all</AnalysisLevel>
 		<AssemblyName>Azure.Monitor.Telemetry</AssemblyName>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -45,7 +46,6 @@
 				<Description>A lightweight, high-performance library for tracking and publishing telemetry.</Description>
 				<EmbedUntrackedSources>true</EmbedUntrackedSources>
 				<EnablePackageValidation>true</EnablePackageValidation>
-				<GenerateDocumentationFile>true</GenerateDocumentationFile>
 				<IncludeSymbols>true</IncludeSymbols>
 				<PackageIcon>icon.png</PackageIcon>
 				<PackageLicenseFile>license.md</PackageLicenseFile>

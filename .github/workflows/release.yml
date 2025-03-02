@@ -1,6 +1,6 @@
 # The workflow to release the library.
 
-name: Publish
+name: Release
 
 on:
   workflow_dispatch:
@@ -9,11 +9,16 @@ on:
         description: Version in format X.Y.Z
         required: true
         type: string
-      isPreRelease:
-        default: true
-        description: Is pre-release
+      versionPreRelease:
+        default: 'rc'
+        description: Pre-release
         required: true
-        type: boolean
+        type: string
+      packagePrefix:
+        default: 'Stas'
+        description: Package prefix
+        required: true
+        type: string
       pushToGitHub:
         default: false
         description: Push to GitHub.com
@@ -25,7 +30,7 @@ on:
         required: true
         type: boolean
 
-run-name: ${{ format('Pack {0}{1}', inputs.version, inputs.isPreRelease && '-pre' || '') }}
+run-name: ${{ format('Release {0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
 
 jobs:
   run:
@@ -50,11 +55,11 @@ jobs:
       # Path to the project file relative to the root of the project.
       MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
       # Package identifier
-      PACKAGE_ID: Stas.Azure.Monitor.Telemetry
+      PACKAGE_ID: ${{ inputs.packagePrefix}}.Azure.Monitor.Telemetry
       # Package output directory path
       PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('{0}{1}', inputs.version, inputs.isPreRelease && '-pre' || '') }}
+      PACKAGE_VERSION: ${{ format('Release {0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
