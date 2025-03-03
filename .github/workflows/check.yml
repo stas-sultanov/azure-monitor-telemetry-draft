@@ -107,19 +107,13 @@ jobs:
         --results-directory ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}
         --verbosity ${{ env.DOTNET_VERBOSITY }}
 
-    - name: Install TRX to Markdown Converter
-      run: npm install -g trx2md
-  
-    - name: Convert TRX Report to Markdown
-      run: trx2md ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx -o ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/test-report.md
-
-    - name: Add Test Report to PR
-      uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 #v2.9.1
-      if: github.event_name == 'pull_request'
+    - name: Publish Tests Results
+      uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       with:
-        header: Unit Tests
-        recreate: true
-        path: ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/test-report.md
+        check_name: Integration Tests
+        check_run: false # feature does not work well like at all
+        files: |
+          ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
 
     - name: Convert Coverage Report to Markdown
       uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 #v1.3.0
@@ -136,6 +130,7 @@ jobs:
       with:
         header: Unit Tests
         recreate: true
+        message: Unit Tests
         path: code-coverage-results.md
 
   runIntegrationTests:
