@@ -12,13 +12,18 @@ on:
       versionPreRelease:
         default: 'rc'
         description: Pre-release
-        required: true
+        required: false
         type: string
       packagePrefix:
         default: 'Stas'
         description: Package prefix
-        required: true
+        required: false
         type: string
+      packageAttest:
+          default: false
+          description: Attest Package Provenance
+          required: true
+          type: boolean
       pushToGitHub:
         default: false
         description: Push to GitHub.com
@@ -27,6 +32,11 @@ on:
       pushToNuGet:
         default: false
         description: Push to NuGet.org
+        required: true
+        type: boolean
+      release:
+        default: false
+        description: Make a Release
         required: true
         type: boolean
 
@@ -109,20 +119,24 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
   
-    - name: Publish Package to GitHub
+    - name: Push Package to GitHub
       if: ${{ inputs.pushToGitHub }}
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
 
-    - name: Publish Package to NuGet
+    - name: Push Package to NuGet
       if: ${{ inputs.pushToNuGet }}
       run: >-
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
         --source ${{ vars.NUGET_API_URL }}
 
-    - name: Upload Package
-      uses: actions/upload-artifact@v4
-      with:
-        name: packages
-        path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}
+    - name: Make Release
+      if: ${{ inputs.release }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: >-
+        gh release create "v${{ env.PACKAGE_VERSION }}"
+        --repo="${{ github.repository }}"
+        --title="Release ${{ env.PACKAGE_VERSION }}"
+        --generate-notes
