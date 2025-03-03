@@ -20,10 +20,10 @@ on:
         required: false
         type: string
       packageAttest:
-          default: false
-          description: Attest Package Provenance
-          required: true
-          type: boolean
+        default: false
+        description: Attest Package Provenance
+        required: true
+        type: boolean
       pushToGitHub:
         default: false
         description: Push to GitHub.com
@@ -69,7 +69,8 @@ jobs:
       # Path to the project file relative to the root of the project.
       MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
       # Package identifier
-      PACKAGE_ID: ${{ inputs.packagePrefix}}.Azure.Monitor.Telemetry
+      PACKAGE_ID: ${{ inputs.packagePrefix }}.Azure.Monitor.Telemetry
+      PACKAGE_ID2: ${{ format('{0}{1}Azure.Monitor.Telemetry', inputs.packagePrefix, inputs.packagePrefix != '' && '-' || '', inputs.versionPreRelease) }}
       # Package output directory path
       PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
@@ -137,6 +138,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: >-
         gh release create "v${{ env.PACKAGE_VERSION }}"
-        --repo="${{ github.repository }}"
-        --title="Release ${{ env.PACKAGE_VERSION }}"
         --generate-notes
+        --prerelease="${{ env.IS_PRE_RELEASE }}"
+        --repo="${{ github.repository }}"
+        --target="${{ github.sha }}"
+        --title="Release ${{ env.PACKAGE_VERSION }}"
