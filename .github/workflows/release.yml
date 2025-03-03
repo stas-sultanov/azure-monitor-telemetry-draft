@@ -1,27 +1,32 @@
 # The workflow to release the library.
+# The workflow allows to include different steps in the process:
+# - Attest the package provenance
+# - Release the package to github.com Feed
+# - Release the package to nuget.org Feed
+# - Create a GitHub Release
 
 name: Release
 
 on:
   workflow_dispatch:
     inputs:
+      id:
+        default: 'Stas.Azure.Monitor.Telemetry'
+        description: Identifier
+        required: true
+        type: string
       version:
         description: Version in format X.Y.Z
         required: true
         type: string
-      versionPreRelease:
-        default: 'rc'
-        description: Pre-release
-        required: false
-        type: string
-      packagePrefix:
-        default: 'Stas'
-        description: Package prefix
-        required: false
-        type: string
-      packageAttest:
+      isPreRelease:
         default: false
-        description: Attest Package Provenance
+        description: Is Pre-Release
+        required: false
+        type: boolean
+      attestProvenance:
+        default: false
+        description: Attest Provenance
         required: true
         type: boolean
       pushToGitHub:
@@ -34,13 +39,13 @@ on:
         description: Push to NuGet.org
         required: true
         type: boolean
-      release:
+      createRelease:
         default: false
-        description: Make a Release
+        description: Create a Release
         required: true
         type: boolean
 
-run-name: ${{ format('Release {0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
+run-name: ${{ format('{0} {1}{2}{3}', inputs.id, inputs.version, inputs.isPreRelease && '-rc' || '') }}
 
 jobs:
   run:
@@ -64,16 +69,14 @@ jobs:
       ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME: 'assembly.snk'
       # Configuration type to build.
       BUILD_CONFIGURATION_NAME: Release
-      # Flag to indicate if the version is pre-release.
-      IS_PRE_RELEASE: ${{ inputs.versionPreRelease != '' }}
       # Path to the project file relative to the root of the project.
       MAIN_PROJECT_FILE_PATH: .\src\Azure.Monitor.Telemetry.csproj
       # Package identifier
-      PACKAGE_ID: ${{ format('{0}{1}Azure.Monitor.Telemetry', inputs.packagePrefix, inputs.packagePrefix != '' && '.' || '') }}
+      PACKAGE_ID: ${{ inputs.id }}
       # Package output directory path
       PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('{0}{1}{2}', inputs.version, inputs.versionPreRelease != '' && '-' || '', inputs.versionPreRelease) }}
+      PACKAGE_VERSION: ${{ format('{0}{1}{2}', inputs.version, inputs.isPreRelease && '-rc' || '') }}
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
@@ -105,13 +108,13 @@ jobs:
         -p:RepositoryCommit=${{ github.sha }}
         -p:RepositoryUrl=${{ env.REPO_URL }}
 
-    - name: Attest Package Provenance
-      if: ${{ !env.IS_PRE_RELEASE }}
+    - name: Attest Provenance
+      if: ${{ inputs.attestProvenance }}
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
+        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.*pkg
 
-    - name: Setup .NET
+    - name: Configure GitHub NuGet Feed
       if: ${{ inputs.pushToGitHub }}
       uses: actions/setup-dotnet@v4
       with:
@@ -122,23 +125,23 @@ jobs:
     - name: Push Package to GitHub
       if: ${{ inputs.pushToGitHub }}
       run: >-
-        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.nupkg
 
     - name: Push Package to NuGet
       if: ${{ inputs.pushToNuGet }}
       run: >-
-        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
         --source ${{ vars.NUGET_API_URL }}
 
-    - name: Make Release
-      if: ${{ inputs.release }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Release
+      if: ${{ inputs.createRelease }}
       run: >-
         gh release create "v${{ env.PACKAGE_VERSION }}"
         --generate-notes
-        --prerelease="${{ env.IS_PRE_RELEASE }}"
+        --prerelease="${{ inputs.isPreRelease }}"
         --repo="${{ github.repository }}"
         --target="${{ github.sha }}"
         --title="${{env.PACKAGE_ID}}-${{ env.PACKAGE_VERSION }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
