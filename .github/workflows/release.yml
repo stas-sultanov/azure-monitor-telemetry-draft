@@ -88,7 +88,7 @@ jobs:
 
     - name: Get Sign Certificate
       run: |
-        echo -n $ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 | base64 -d >> ./src/${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
+        echo -n $ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 | base64 -d >> .\src\${{ env.ASSEMBLY_SIGN_CERTIFICATE_FILE_NAME }}
       shell: bash
       env:
         ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64: ${{ secrets.ASSEMBLY_SIGN_CERTIFICATE_SNK_BASE64 }}
@@ -112,7 +112,7 @@ jobs:
       if: ${{ inputs.attestProvenance }}
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.*pkg
+        subject-path: ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.*pkg
 
     - name: Configure GitHub NuGet Feed
       if: ${{ inputs.pushToGitHub }}
@@ -125,12 +125,12 @@ jobs:
     - name: Push Package to GitHub
       if: ${{ inputs.pushToGitHub }}
       run: >-
-        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.nupkg
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
 
     - name: Push Package to NuGet
       if: ${{ inputs.pushToNuGet }}
       run: >-
-        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}/*.nupkg
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY_PATH }}\*.nupkg
         --api-key ${{ secrets.NUGET_API_KEY }}
         --source ${{ vars.NUGET_API_URL }}
 
