@@ -45,7 +45,7 @@ on:
         required: true
         type: boolean
 
-run-name: ${{ format('{0} {1}{2}{3}', inputs.id, inputs.version, inputs.isPreRelease && '-rc' || '') }}
+run-name: ${{ format('{0}.{1}{2}', inputs.id, inputs.version, inputs.isPreRelease && '-rc' || '') }}
 
 jobs:
   run:
@@ -76,7 +76,7 @@ jobs:
       # Package output directory path
       PACKAGE_OUTPUT_DIRECTORY_PATH: .\out
       # Package Version
-      PACKAGE_VERSION: ${{ format('{0}{1}{2}', inputs.version, inputs.isPreRelease && '-rc' || '') }}
+      PACKAGE_VERSION: ${{ format('{0}{1}', inputs.version, inputs.isPreRelease && '-rc' || '') }}
       # Repo url
       REPO_URL: ${{ format('{0}/{1}', github.server_url, github.repository) }}
       # Verbosity level
@@ -142,6 +142,6 @@ jobs:
         --prerelease="${{ inputs.isPreRelease }}"
         --repo="${{ github.repository }}"
         --target="${{ github.sha }}"
-        --title="${{env.PACKAGE_ID}}-${{ env.PACKAGE_VERSION }}"
+        --title="${{env.PACKAGE_ID}}.${{ env.PACKAGE_VERSION }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
