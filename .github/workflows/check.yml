@@ -79,7 +79,7 @@ jobs:
     permissions:
       # Required by [EnricoMi/publish-unit-test-result-action]
       checks: write
-      # Required by [EnricoMi/publish-unit-test-result-action, marocchino/sticky-pull-request-comment]
+      # Required by [EnricoMi/publish-unit-test-result-action]
       pull-requests: write
 
     runs-on: ubuntu-latest
