@@ -25,7 +25,17 @@ jobs:
 
     steps:
 
-    - name: Add Coverage Report to Summary
+    - name: Add to Summary 1
       run: |
-        echo "#blabbalbaa" >> $env:GITHUB_STEP_SUMMARY
-        echo "#blebleble" >> $env:GITHUB_STEP_SUMMARY
+        echo "#Summary 1" >> $env:GITHUB_STEP_SUMMARY
+        echo "### Hello world! :rocket:" >> $env:GITHUB_STEP_SUMMARY
+
+    - name: Add to Summary 2
+      run: |
+        echo "#Summary 2" >> $env:GITHUB_STEP_SUMMARY
+        echo "### Hello world! :rocket:" >> $env:GITHUB_STEP_SUMMARY
+  
+    - name: Add to Summary 3
+      run: |
+        echo "## Unit Tests" >> $env:GITHUB_STEP_SUMMARY
+        cat code-coverage-results.md >> $env:GITHUB_STEP_SUMMARY
