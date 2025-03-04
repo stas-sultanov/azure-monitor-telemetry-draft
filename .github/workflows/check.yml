@@ -110,7 +110,7 @@ jobs:
     - name: Publish Tests Results
       uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b #v2.18.0
       with:
-        check_name: Integration Tests
+        check_name: Unit Tests
         check_run: false # feature does not work well like at all
         files: |
           ${{ env.TESTS_RESULTS_DIRECTORY_NAME }}/*.trx
@@ -132,6 +132,9 @@ jobs:
         recreate: true
         message: Unit Tests
         path: code-coverage-results.md
+
+    - name: Add Coverage Report to Summary
+      run: cat code-coverage-results.md >> $env:GITHUB_STEP_SUMMARY
 
   runIntegrationTests:
 
