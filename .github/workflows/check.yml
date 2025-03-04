@@ -130,10 +130,15 @@ jobs:
       with:
         header: Unit Tests
         recreate: true
-        message: Unit Tests
+        message: Unit Tests Results
         path: code-coverage-results.md
 
-    - name: Add Coverage Report to Summary
+    - name: Add to Summary 1
+      run: |
+        echo "#blabbalbaa" >> $env:GITHUB_STEP_SUMMARY
+        echo "### Hello world! :rocket:" >> $env:GITHUB_STEP_SUMMARY
+
+    - name: Add to Summary 2
       run: |
         echo "## Unit Tests" >> $env:GITHUB_STEP_SUMMARY
         cat code-coverage-results.md >> $env:GITHUB_STEP_SUMMARY

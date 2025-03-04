@@ -1,6 +1,6 @@
 # The workflow to check the library source with build and tests
 
-name: Check
+name: Test
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ jobs:
 
   build:
 
-    name: Build
+    name: Run
 
     permissions:
       # Required to checkout the repo
