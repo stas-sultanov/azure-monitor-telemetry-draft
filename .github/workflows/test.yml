@@ -1,0 +1,31 @@
+# The workflow to check the library source with build and tests
+
+name: Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/test.yml"
+      - "src/**"
+      - "test/**"
+
+jobs:
+
+  build:
+
+    name: Build
+
+    permissions:
+      # Required to checkout the repo
+      contents: read
+
+    # one of target frameworks is net462
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Add Coverage Report to Summary
+      run: |
+        echo "#blabbalbaa" >> $env:GITHUB_STEP_SUMMARY
+        echo "#blebleble" >> $env:GITHUB_STEP_SUMMARY
